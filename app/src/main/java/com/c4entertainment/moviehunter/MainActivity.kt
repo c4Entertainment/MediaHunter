@@ -164,7 +164,8 @@ class MainActivity : FragmentActivity() {
 
                     }
 
-                    AuthState(navController = navController)
+//                    Use if you want to authenticate user first
+//                    AuthState(navController = navController)
 
                     if (showSettingsDialog.value) {
                         SettingsDialog(
@@ -200,7 +201,8 @@ class MainActivity : FragmentActivity() {
     ) {
         NavHost(
             navController = navController,
-            startDestination = Screen.AuthCheckScreen.route,
+//            startDestination = Screen.AuthCheckScreen.route,
+            startDestination = Screen.MovieScreen.route,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues = paddingValues),

@@ -63,24 +63,24 @@ fun MovieScreenTopBar(
                 )
             }
 
-            IconButton(onClick = onSettingsClicked)
-            {
-                if (photoUrl != null) {
-                    AsyncImage(
-                        model = photoUrl,
-                        contentDescription = "Profile",
-                        modifier = Modifier
-                            .clip(shape = CircleShape),
-                        contentScale = ContentScale.Crop,
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Profile",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
+//            IconButton(onClick = onSettingsClicked)
+//            {
+//                if (photoUrl != null) {
+//                    AsyncImage(
+//                        model = photoUrl,
+//                        contentDescription = "Profile",
+//                        modifier = Modifier
+//                            .clip(shape = CircleShape),
+//                        contentScale = ContentScale.Crop,
+//                    )
+//                } else {
+//                    Icon(
+//                        imageVector = Icons.Default.AccountCircle,
+//                        contentDescription = "Profile",
+//                        tint = MaterialTheme.colorScheme.onSurface
+//                    )
+//                }
+//            }
         },
         scrollBehavior = scrollBehavior
     )

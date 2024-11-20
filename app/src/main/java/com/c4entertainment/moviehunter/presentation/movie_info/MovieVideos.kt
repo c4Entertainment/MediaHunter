@@ -102,9 +102,6 @@ fun MovieVideos(
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.8f))
                     .align(Alignment.Center)
-                    .clickable {
-                        showVideo.value = false
-                    },
             ) {
                 YoutubePlayer(
                     youtubeVideoID = vidId.value,

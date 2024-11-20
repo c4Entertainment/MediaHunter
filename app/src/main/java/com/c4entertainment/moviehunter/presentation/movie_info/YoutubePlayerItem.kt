@@ -2,15 +2,27 @@ package com.c4entertainment.moviehunter.presentation.movie_info
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
+import android.util.Log
 import android.view.View
+import android.webkit.WebResourceRequest
+import android.webkit.WebSettings.FORCE_DARK_ON
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,6 +36,9 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.Abs
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.FullscreenListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+
+private const val signInUrl =
+    "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Dm%26hl%3Dtr%26next%3Dhttps%253A%252F%252Fm.youtube.com%252F"
 
 @Composable
 fun YoutubePlayer(
@@ -59,57 +74,112 @@ fun YoutubePlayer(
         contentAlignment = Alignment.Center
     ) {
 
-        AndroidView(
-            factory = {
+        var isLoggedIn by remember { mutableStateOf(false) } // Track login status
 
-                YouTubePlayerView(it).apply {
-                    val youTubePlayerView = this
+        if (isLoggedIn) {
+            AndroidView(
+                factory = {
 
-                    val iFramePlayerOptions = IFramePlayerOptions.Builder()
-                        .controls(1)
-                        .fullscreen(1) // enable full screen button
-                        .build()
+                    YouTubePlayerView(it).apply {
+                        val youTubePlayerView = this
 
-                    // we need to initialize manually in order to pass IFramePlayerOptions to the player
-                    youTubePlayerView.enableAutomaticInitialization = false
+                        val iFramePlayerOptions = IFramePlayerOptions.Builder()
+                            .controls(1)
+                            .fullscreen(1) // enable full screen button
+                            .build()
 
-                    youTubePlayerView.addFullscreenListener(object : FullscreenListener {
-                        override fun onEnterFullscreen(
-                            fullscreenView: View,
-                            exitFullscreen: () -> Unit
-                        ) {
+                        // we need to initialize manually in order to pass IFramePlayerOptions to the player
+                        youTubePlayerView.enableAutomaticInitialization = false
 
-                            //navigate to full screen activity
-                            val intent = Intent(mainActivity, FullscreenActivity::class.java)
-                            intent.putExtra(VIDEO_ID, youtubeVideoID)
-                            intent.putExtra(VIDEO_START_DELAY, videoStartDelay)
-                            exitFullscreen()
+                        youTubePlayerView.addFullscreenListener(object : FullscreenListener {
+                            override fun onEnterFullscreen(
+                                fullscreenView: View,
+                                exitFullscreen: () -> Unit
+                            ) {
 
-                            launcher.launch(intent)
-                        }
+                                //navigate to full screen activity
+                                val intent = Intent(mainActivity, FullscreenActivity::class.java)
+                                intent.putExtra(VIDEO_ID, youtubeVideoID)
+                                intent.putExtra(VIDEO_START_DELAY, videoStartDelay)
+                                exitFullscreen()
 
-                        override fun onExitFullscreen() {
+                                launcher.launch(intent)
+                            }
 
-                        }
-                    })
+                            override fun onExitFullscreen() {
 
-                    youTubePlayerView.initialize(object : AbstractYouTubePlayerListener() {
-                        override fun onReady(youTubePlayer: YouTubePlayer) {
-                            ytPlayer = youTubePlayer
-                            youTubePlayer.loadVideo(youtubeVideoID, videoStartDelay)
-                        }
+                            }
+                        })
 
-                        override fun onCurrentSecond(youTubePlayer: YouTubePlayer, second: Float) {
-                            videoStartDelay = second
-                        }
-                    }, iFramePlayerOptions)
+                        youTubePlayerView.initialize(object : AbstractYouTubePlayerListener() {
+                            override fun onReady(youTubePlayer: YouTubePlayer) {
+                                ytPlayer = youTubePlayer
+                                youTubePlayer.loadVideo(youtubeVideoID, videoStartDelay)
+                            }
+
+                            override fun onCurrentSecond(
+                                youTubePlayer: YouTubePlayer,
+                                second: Float
+                            ) {
+                                videoStartDelay = second
+                            }
+                        }, iFramePlayerOptions)
 
 
-                    findViewTreeLifecycleOwner()?.lifecycle?.addObserver(youTubePlayerView)
+                        findViewTreeLifecycleOwner()?.lifecycle?.addObserver(youTubePlayerView)
+                    }
+
+
                 }
+            )
+        } else {
+            AndroidView(
+                factory = { context ->
+                    val container = FrameLayout(context)
 
+                    // WebView setup
+                    val webView = WebView(context).apply {
+                        settings.javaScriptEnabled = true
+                        settings.domStorageEnabled = true
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            settings.isAlgorithmicDarkeningAllowed = true
+                        } else {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                settings.forceDark = FORCE_DARK_ON
+                            }
+                        }
 
-            }
-        )
+                        loadUrl(signInUrl)
+
+                        webViewClient = object : WebViewClient() {
+                            override fun shouldOverrideUrlLoading(
+                                view: WebView,
+                                request: WebResourceRequest
+                            ): Boolean {
+                                if (request.url.toString().startsWith("https://m.youtube.com") ||
+                                    request.url.toString().startsWith("https://www.youtube.com")
+                                ) {
+                                    Log.d("WebView", "Logged in")
+
+                                    // Notify login success
+                                    mainActivity.runOnUiThread {
+                                        isLoggedIn = true
+                                    }
+                                    return true
+                                }
+                                return false
+                            }
+                        }
+                    }
+
+                    container.addView(webView)
+
+                    // Initially add the WebView only
+                    container
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
     }
 }
