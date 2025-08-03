@@ -135,7 +135,7 @@ dependencies {
     implementation("androidx.biometric:biometric:1.2.0-alpha05")
 
     // Youtube Player
-    implementation ("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.1")
+    implementation ("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.2")
 
     // Splash Screen
     implementation ("androidx.core:core-splashscreen:1.0.1")
