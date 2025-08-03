@@ -35,7 +35,7 @@ constructor(app: MovieApp) {
     //create a flow to listen to changes in the datastore
      val userSettings = datastore.data.map { preferences ->
         UserSettings(
-            useGrid = preferences[USE_GRID] ?: false,
+            useGrid = preferences[USE_GRID] ?: true,
             useDynamicColor = preferences[USE_DYNAMIC_COLOR] ?: true,
             useFingerPrint = preferences[USE_FINGERPRINT] ?: false,
             darkThemeConfig  = preferences[DATA_THEME_CONFIG] ?: DarkThemeConfig.FOLLOW_SYSTEM,
