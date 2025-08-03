@@ -76,7 +76,7 @@ fun YoutubePlayer(
 
         var isLoggedIn by remember { mutableStateOf(false) } // Track login status
 
-        if (isLoggedIn) {
+        if (true) {
             AndroidView(
                 factory = {
 
