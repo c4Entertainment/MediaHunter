@@ -6,11 +6,12 @@ plugins {
     id ("kotlin-kapt")
     id ("dagger.hilt.android.plugin")
     id ("com.google.gms.google-services")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
     namespace = "com.c4entertainment.moviehunter"
-    compileSdk = 33
+    compileSdk = 36
 
     buildFeatures {
         buildConfig = true
@@ -19,7 +20,7 @@ android {
     defaultConfig {
         applicationId = "com.c4entertainment.moviehunter"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -64,14 +65,15 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+kapt {
+    correctErrorTypes = true
 }
 
 dependencies {
@@ -102,10 +104,10 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 
     // Dagger - Hilt
-    implementation ("com.google.dagger:hilt-android:2.45")
-    kapt ("com.google.dagger:hilt-android-compiler:2.45")
-    kapt ("androidx.hilt:hilt-compiler:1.0.0")
-    implementation ("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation ("com.google.dagger:hilt-android:2.52")
+    kapt ("com.google.dagger:hilt-android-compiler:2.52")
+    kapt ("androidx.hilt:hilt-compiler:1.2.0")
+    implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Paging
     implementation ("androidx.paging:paging-runtime-ktx:3.2.0")
@@ -117,9 +119,10 @@ dependencies {
     implementation ("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.3")
 
     // Room
-    implementation ("androidx.room:room-ktx:2.5.1")
-    kapt ("androidx.room:room-compiler:2.5.1")
-    implementation ("androidx.room:room-paging:2.5.2")
+    val room_version = "2.7.0-alpha11"
+    implementation ("androidx.room:room-ktx:$room_version")
+    kapt ("androidx.room:room-compiler:$room_version")
+    implementation ("androidx.room:room-paging:$room_version")
 
     // Firebase Auth
     implementation ("com.google.firebase:firebase-auth-ktx:21.1.0")
@@ -135,7 +138,7 @@ dependencies {
     implementation("androidx.biometric:biometric:1.2.0-alpha05")
 
     // Youtube Player
-    implementation ("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.2")
+    implementation ("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
 
     // Splash Screen
     implementation ("androidx.core:core-splashscreen:1.0.1")

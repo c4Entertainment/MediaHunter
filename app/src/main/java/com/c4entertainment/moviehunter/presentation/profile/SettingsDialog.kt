@@ -18,7 +18,9 @@ package com.c4entertainment.moviehunter.presentation.profile
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,6 +45,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -144,10 +147,14 @@ fun SettingsDialogImpl(
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
-                    .clickable {
-                        onSignOut()
-                        onDismiss()
-                    },
+                    .clickable(
+                        indication = LocalIndication.current,
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = {
+                            onSignOut()
+                            onDismiss()
+                        }
+                    ),
             )
         },
     )
@@ -339,9 +346,11 @@ private fun TextLink(text: String, url: String) {
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier
             .padding(vertical = 8.dp)
-            .clickable {
-                ContextCompat.startActivity(context, launchResourceIntent, null)
-            },
+            .clickable(
+                indication = LocalIndication.current,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = { ContextCompat.startActivity(context, launchResourceIntent, null) }
+            ),
     )
 }
 

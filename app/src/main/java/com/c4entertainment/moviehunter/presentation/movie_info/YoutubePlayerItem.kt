@@ -83,7 +83,7 @@ fun YoutubePlayer(
                     YouTubePlayerView(it).apply {
                         val youTubePlayerView = this
 
-                        val iFramePlayerOptions = IFramePlayerOptions.Builder()
+                        val iFramePlayerOptions = IFramePlayerOptions.Builder(context)
                             .controls(1)
                             .fullscreen(1) // enable full screen button
                             .build()

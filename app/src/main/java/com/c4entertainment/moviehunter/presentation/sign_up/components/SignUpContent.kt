@@ -1,6 +1,8 @@
 package com.c4entertainment.moviehunter.presentation.sign_up.components
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -8,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -96,9 +99,11 @@ fun SignUpContent(
             )
         }
         Text(
-            modifier = Modifier.clickable {
-                navigateBack()
-            },
+            modifier = Modifier.clickable(
+                indication = LocalIndication.current,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = { navigateBack() }
+            ),
             text = ALREADY_USER,
             fontSize = 15.sp
         )

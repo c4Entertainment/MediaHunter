@@ -48,7 +48,7 @@ class FullscreenActivity : AppCompatActivity() {
         startVideoDelay = intent.getFloatExtra(VIDEO_START_DELAY, 0F)
         videoID = intent.getStringExtra(VIDEO_ID) ?: ""
 
-        val iFramePlayerOptions = IFramePlayerOptions.Builder()
+        val iFramePlayerOptions = IFramePlayerOptions.Builder(this)
             .controls(1)
             .fullscreen(1) // enable full screen button
             .build()
@@ -82,7 +82,7 @@ class FullscreenActivity : AppCompatActivity() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
                 this@FullscreenActivity.youTubePlayer = youTubePlayer
                 youTubePlayer.loadVideo(videoID, startVideoDelay)
-                youTubePlayer.toggleFullscreen()
+//                youTubePlayer.toggleFullscreen()
             }
 
             override fun onCurrentSecond(youTubePlayer: YouTubePlayer, second: Float) {

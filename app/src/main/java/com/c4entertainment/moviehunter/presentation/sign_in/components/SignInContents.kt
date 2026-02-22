@@ -1,6 +1,8 @@
 package com.c4entertainment.moviehunter.presentation.sign_in.components
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -10,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -108,9 +111,11 @@ fun SignInContents(
         Spacer(modifier = Modifier.height(16.dp))
         Row {
             Text(
-                modifier = Modifier.clickable {
-                    navigateToForgotPasswordScreen()
-                },
+                modifier = Modifier.clickable(
+                    indication = LocalIndication.current,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = { navigateToForgotPasswordScreen() }
+                ),
                 text = FORGOT_PASSWORD,
                 fontSize = 15.sp
             )
@@ -121,9 +126,11 @@ fun SignInContents(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                modifier = Modifier.clickable {
-                    navigateToSignUpScreen()
-                },
+                modifier = Modifier.clickable(
+                    indication = LocalIndication.current,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = { navigateToSignUpScreen() }
+                ),
                 text = NO_ACCOUNT,
                 fontSize = 15.sp
             )

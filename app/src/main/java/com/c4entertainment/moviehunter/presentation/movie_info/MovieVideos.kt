@@ -2,7 +2,9 @@ package com.c4entertainment.moviehunter.presentation.movie_info
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -63,10 +65,14 @@ fun MovieVideos(
                                     .requiredHeight(h.dp)
                                     .clip(shape = RoundedCornerShape(30.dp))
                                     .padding(8.dp)
-                                    .clickable {
-                                        vidId.value = videos[index].key ?: ""
-                                        showVideo.value = true
-                                    }
+                                    .clickable(
+                                        indication = LocalIndication.current,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick = {
+                                            vidId.value = videos[index].key ?: ""
+                                            showVideo.value = true
+                                        }
+                                    )
                             ) {
                                 AsyncImage(
                                     model = "https://img.youtube.com/vi/${videos[index].key ?: ""}/0.jpg",

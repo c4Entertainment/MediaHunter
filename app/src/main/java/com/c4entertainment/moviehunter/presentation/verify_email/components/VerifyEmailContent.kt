@@ -1,7 +1,10 @@
 package com.c4entertainment.moviehunter.presentation.verify_email.components
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.remember
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,9 +33,11 @@ fun VerifyEmailContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            modifier = Modifier.clickable {
-                reloadUser()
-            },
+            modifier = Modifier.clickable(
+                indication = LocalIndication.current,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = { reloadUser() }
+            ),
             text = ALREADY_VERIFIED,
             fontSize = 16.sp,
             textDecoration = TextDecoration.Underline
