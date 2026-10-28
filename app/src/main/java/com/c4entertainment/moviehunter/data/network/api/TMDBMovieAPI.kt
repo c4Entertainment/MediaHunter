@@ -4,6 +4,7 @@ import com.c4entertainment.moviehunter.BuildConfig
 import com.c4entertainment.moviehunter.data.network.apiresponses.MoviesResponse
 import com.c4entertainment.moviehunter.data.network.dto.movie_details.MovieDetails2Dto
 import com.c4entertainment.moviehunter.data.network.dto.movie_details.MovieDetailsDto
+import com.c4entertainment.moviehunter.data.network.dto.tv.TvSeasonsDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -38,6 +39,12 @@ interface TMDBMovieAPI {
         @Query("append_to_response") appendToResponse: String = "videos,credits",
         @Query("api_key") apiKey: String = API_KEY,
     ): MovieDetailsDto
+
+    @GET("tv/{id}")
+    suspend fun getTvSeasons(
+        @Path("id") id: Int,
+        @Query("api_key") apiKey: String = API_KEY,
+    ): TvSeasonsDto
 
     @GET("find/{external_id}")
     suspend fun getMovieDetailsByExternalId(

@@ -1,8 +1,10 @@
 package com.c4entertainment.moviehunter.data.network.dto.movie_details
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 
+@JsonClass(generateAdapter = true)
 data class ProductionCountry (
 
   @field:Json(name = "iso_3166_1" ) var iso31661 : String? = null,

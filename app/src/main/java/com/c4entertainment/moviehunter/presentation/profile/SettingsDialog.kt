@@ -37,7 +37,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -57,10 +57,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.c4entertainment.moviehunter.R
 import com.c4entertainment.moviehunter.presentation.sign_in.UserProfile
 import com.c4entertainment.moviehunter.ui.theme.supportsDynamicTheming
@@ -111,7 +110,7 @@ fun SettingsDialogImpl(
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 Profile(userProfile)
-                Divider(Modifier.padding(top = 8.dp))
+                HorizontalDivider(Modifier.padding(top = 8.dp))
                 when (settingsUiState) {
                     SettingsUiState.Loading -> {
                         Text(
@@ -125,7 +124,7 @@ fun SettingsDialogImpl(
                             useFingerprint = settingsUiState.settings.useFingerPrint,
                             onToggleFingerprint = onToggleUseFingerprint
                         )
-                        Divider(Modifier.padding(top = 8.dp))
+                        HorizontalDivider(Modifier.padding(top = 8.dp))
                         SettingsPanel(
                             settings = settingsUiState.settings,
                             supportDynamicColor = supportDynamicColor,
@@ -135,7 +134,7 @@ fun SettingsDialogImpl(
                         )
                     }
                 }
-                Divider(Modifier.padding(top = 8.dp))
+                HorizontalDivider(Modifier.padding(top = 8.dp))
                 LinksPanel()
             }
         },
@@ -349,7 +348,7 @@ private fun TextLink(text: String, url: String) {
             .clickable(
                 indication = LocalIndication.current,
                 interactionSource = remember { MutableInteractionSource() },
-                onClick = { ContextCompat.startActivity(context, launchResourceIntent, null) }
+                onClick = { context.startActivity(launchResourceIntent) }
             ),
     )
 }

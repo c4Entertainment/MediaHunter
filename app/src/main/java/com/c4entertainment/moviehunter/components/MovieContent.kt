@@ -3,8 +3,13 @@ package com.c4entertainment.moviehunter.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -14,10 +19,8 @@ import com.c4entertainment.moviehunter.components.movie_listing.PagingDataNoResu
 import com.c4entertainment.moviehunter.components.movie_listing.view.GridContent
 import com.c4entertainment.moviehunter.components.movie_listing.view.ListContent
 import com.c4entertainment.moviehunter.domain.model.movie.Movie
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieContent(
     modifier: Modifier,
@@ -28,8 +31,8 @@ fun MovieContent(
     useGrid: Boolean,
     onClickMovie: (Int) -> Unit,
 ) {
-    val swipeRefreshState =
-        rememberSwipeRefreshState(isRefreshing = content.loadState.refresh is LoadState.Loading)
+    val isRefreshing = content.loadState.refresh is LoadState.Loading
+    val pullToRefreshState = rememberPullToRefreshState()
 
     Column(
         modifier = modifier
@@ -59,15 +62,17 @@ fun MovieContent(
                 }
             } else {
 
-                SwipeRefresh(
-                    state = swipeRefreshState,
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
                     onRefresh = { content.refresh() },
-                    indicator = { state, refreshTrigger ->
-                        SwipeRefreshIndicator(
-                            state = state,
-                            refreshTriggerDistance = refreshTrigger,
-                            backgroundColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                    state = pullToRefreshState,
+                    indicator = {
+                        PullToRefreshDefaults.Indicator(
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            isRefreshing = isRefreshing,
+                            state = pullToRefreshState,
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     },
                 ) {

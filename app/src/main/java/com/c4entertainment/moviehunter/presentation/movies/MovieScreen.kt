@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -24,6 +25,7 @@ import com.c4entertainment.moviehunter.domain.model.movie.Movie
 import com.c4entertainment.moviehunter.navigation.Screen
 import com.c4entertainment.moviehunter.presentation.sign_in.UserProfile
 import com.c4entertainment.moviehunter.util.MovieTVFilterConfig
+import com.prajwalch.torrentsearch.TorrentSearch
 
 
 private const val TAG = "MovieScreen"
@@ -69,6 +71,7 @@ fun MovieScreen(
 
     ) {
 
+    val context = LocalContext.current
 
     Scaffold(
         modifier = Modifier
@@ -77,7 +80,11 @@ fun MovieScreen(
         topBar = {
             MovieScreenTopBar(photoUrl = userPhoto, isGridView = useGrid, toggleView = {
                 movieEvent(MovieEvent.OnToggleView(!useGrid))
-            }, onSettingsClicked = showSettingsDialog, onSearchClicked = {
+            }, onSettingsClicked = showSettingsDialog, onTorrentSearchClicked = {
+                context.startActivity(TorrentSearch.homeIntent(context))
+            }, onTorrentSettingsClicked = {
+                context.startActivity(TorrentSearch.settingsIntent(context))
+            }, onSearchClicked = {
                 movieEvent(MovieEvent.OnMovieTVBackupStored(movieTV))
                 navigate(Screen.SearchScreen.route)
             }, scrollBehavior = scrollBehavior

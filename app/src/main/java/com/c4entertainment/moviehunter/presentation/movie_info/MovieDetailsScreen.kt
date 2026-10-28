@@ -9,15 +9,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.ui.platform.LocalContext
+import com.prajwalch.torrentsearch.TorrentSearch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -31,8 +36,12 @@ fun MovieDetailsScreen(
     val TAG = "MovieDetailsScreen"
 
     val state = viewModel.state
-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = state.isLoading)
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val context = LocalContext.current
+    var showTvTorrentSheet by remember { mutableStateOf(false) }
+    val searchTorrents = { query: String ->
+        context.startActivity(TorrentSearch.searchIntent(context, query))
+    }
 
 
     Log.d(TAG, "MovieDetailsScreen: ${state.movieDetails})")
@@ -46,10 +55,32 @@ fun MovieDetailsScreen(
             MovieDetailsTopBar(
                 title = state.movie?.title ?: "",
                 navigateBack = navigateBack,
+                onFindTorrents = state.movie?.let { movie ->
+                    {
+                        if (type == "tv") {
+                            showTvTorrentSheet = true
+                        } else {
+                            searchTorrents(torrentQuery(movie.title, movie.releaseDate.take(4)))
+                        }
+                    }
+                },
                 scrollBehavior = scrollBehavior
             )
         },
     ) { innerPadding ->
+
+        val movie = state.movie
+        if (showTvTorrentSheet && movie != null) {
+            TvTorrentSearchSheet(
+                title = movie.title,
+                seasons = state.tvSeasons,
+                onSearch = { query ->
+                    showTvTorrentSheet = false
+                    searchTorrents(query)
+                },
+                onDismiss = { showTvTorrentSheet = false },
+            )
+        }
 
 
         val tabIndex = viewModel.tabIndex
@@ -58,7 +89,7 @@ fun MovieDetailsScreen(
                 .fillMaxWidth()
                 .padding(innerPadding)
         ) {
-            TabRow(selectedTabIndex = tabIndex.value!!) {
+            PrimaryTabRow(selectedTabIndex = tabIndex.value!!) {
                 viewModel.tabs.forEachIndexed { index, title ->
                     Tab(text = { Text(title) },
                         selected = tabIndex.value!! == index,
@@ -73,7 +104,7 @@ fun MovieDetailsScreen(
             when (tabIndex.value) {
                 0 -> MovieDetails(
                     state = state,
-                    swipeRefreshState = swipeRefreshState,
+                    isRefreshing = state.isLoading,
                     viewModel = viewModel,
                     id = id,
                     type = type,

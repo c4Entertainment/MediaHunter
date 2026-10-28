@@ -9,11 +9,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,7 +72,7 @@ fun SearchWidget(
                 navigateBack()
             }) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(
                         id = R.string.back,
                     ),
@@ -88,7 +88,7 @@ fun SearchWidget(
 //            }
             IconButton(onClick = {onSearchEvent(SearchEvent.OnToggleView(!isGridView))} ) {
                 Icon(
-                    imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
                     contentDescription = "View",
                     tint = MaterialTheme.colorScheme.onSurface
                 )
@@ -150,7 +150,7 @@ fun SearchWidget(
                         onSearchEvent(SearchEvent.OnSearchInitiated)
                     }
                 ),
-                colors = TextFieldDefaults.textFieldColors(
+                colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
 //                backgroundColor = Color.Transparent,

@@ -21,7 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.c4entertainment.moviehunter.R
 import com.c4entertainment.moviehunter.domain.model.movie.Movie
 import com.c4entertainment.moviehunter.components.movie_listing.item.MovieListItemInfo

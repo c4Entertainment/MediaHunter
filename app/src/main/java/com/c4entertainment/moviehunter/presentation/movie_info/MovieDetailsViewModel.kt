@@ -87,6 +87,18 @@ class MovieDetailsViewModel @Inject constructor(
         val type = savedStateHandle.get<String>("type") ?: "movie"
 
         getMovie(id = id.toInt(), type = type)
+        if (type == "tv") getTvSeasons(id = id.toInt())
+    }
+
+    private fun getTvSeasons(id: Int) {
+        viewModelScope.launch {
+            val result = repository.getTvSeasons(id = id)
+            if (result is Resource.Success) {
+                state = state.copy(tvSeasons = result.data.orEmpty())
+            } else {
+                Log.d(TAG, "getTvSeasons: ${result.errorMessage}")
+            }
+        }
     }
 
     val getSignedInUser get() = authRepository.getSignedInUser()

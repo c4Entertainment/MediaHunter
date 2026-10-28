@@ -1,11 +1,15 @@
 package com.c4entertainment.moviehunter.data.network.dto.movie_details
 
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
+
+@JsonClass(generateAdapter = true)
 data class BelongsToCollectionDto(
 
-    val id: Int? = null,
-    val name: String? = null,
-    val posterPath: String? = null,
-    val backdropPath: String? = null
+    @field:Json(name = "id"            ) val id            : Int?    = null,
+    @field:Json(name = "name"          ) val name          : String? = null,
+    @field:Json(name = "poster_path"   ) val posterPath    : String? = null,
+    @field:Json(name = "backdrop_path" ) val backdropPath  : String? = null
 
 )

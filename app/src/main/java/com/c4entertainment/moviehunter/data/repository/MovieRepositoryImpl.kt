@@ -16,6 +16,7 @@ import com.c4entertainment.moviehunter.data.network.SearchMovieNetworkMediator
 import com.c4entertainment.moviehunter.data.network.api.TMDBMovieAPI
 import com.c4entertainment.moviehunter.domain.model.movie.Movie
 import com.c4entertainment.moviehunter.domain.model.movie_details.MovieDetails
+import com.c4entertainment.moviehunter.domain.model.movie_details.TvSeason
 import com.c4entertainment.moviehunter.domain.repository.MovieRepository
 import com.c4entertainment.moviehunter.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -188,6 +189,26 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
 
+
+    override suspend fun getTvSeasons(id: Int): Resource<List<TvSeason>> {
+        return try {
+            val seasons = tmDBApi.getTvSeasons(id = id).seasons
+                // Season 0 holds specials, which torrents rarely name by season.
+                .filter { it.seasonNumber > 0 }
+                .map {
+                    TvSeason(
+                        number = it.seasonNumber,
+                        name = it.name ?: "Season ${it.seasonNumber}",
+                        episodeCount = it.episodeCount ?: 0,
+                    )
+                }
+            Resource.Success(seasons)
+        } catch (e: IOException) {
+            Resource.Error(e.message ?: "An error occurred")
+        } catch (e: HttpException) {
+            Resource.Error(e.message ?: "An error occurred")
+        }
+    }
 
     override suspend fun clearSearch(): Flow<Resource<Boolean>> {
         return flow {

@@ -12,8 +12,11 @@ import com.c4entertainment.moviehunter.domain.model.movie_details.Credits
 import com.c4entertainment.moviehunter.domain.model.movie_details.Crew
 import com.c4entertainment.moviehunter.domain.model.movie_details.Genre
 import com.c4entertainment.moviehunter.domain.model.movie_details.MovieDetails
+import com.c4entertainment.moviehunter.domain.model.movie_details.MovieVideo
 import com.c4entertainment.moviehunter.domain.model.movie_details.ProductionCompany
 import com.c4entertainment.moviehunter.domain.model.movie_details.ProductionCountry
+import com.c4entertainment.moviehunter.domain.model.movie_details.SpokenLanguages
+import com.c4entertainment.moviehunter.domain.model.movie_details.Videos
 
 //import com.frogtest.movieguru.domain.model.MovieVideo
 
@@ -160,14 +163,31 @@ fun MovieDetailsDto.toMovieDetailsEntity(): MovieDetailsEntity {
         firstAirDate = firstAirDate,
         revenue = revenue,
         runtime = runtime,
-        spokenLanguages = spokenLanguages,
+        spokenLanguages = spokenLanguages.map {
+            SpokenLanguages(it.englishName, it.iso6391, it.name)
+        },
         status = status,
         tagline = tagline,
         title = title,
         video = video,
         voteAverage = voteAverage,
         voteCount = voteCount,
-        videos = videos,
+        videos = Videos(
+            videos?.results.orEmpty().map {
+                MovieVideo(
+                    iso6391 = it.iso6391,
+                    iso31661 = it.iso31661,
+                    name = it.name,
+                    key = it.key,
+                    site = it.site,
+                    size = it.size,
+                    type = it.type,
+                    official = it.official,
+                    publishedAt = it.publishedAt,
+                    id = it.id,
+                )
+            }
+        ),
         credits = Credits(
             credits?.cast?.map {
                 Cast(

@@ -1,10 +1,10 @@
 package com.c4entertainment.moviehunter.data.network.dto.movie_details
 
-import com.c4entertainment.moviehunter.domain.model.movie_details.SpokenLanguages
-import com.c4entertainment.moviehunter.domain.model.movie_details.Videos
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 
+@JsonClass(generateAdapter = true)
 data class MovieDetailsDto(
 
     @field:Json(name = "adult") var adult: Boolean? = null,
@@ -27,7 +27,7 @@ data class MovieDetailsDto(
     @field:Json(name = "first_air_date") var firstAirDate: String? = null,
     @field:Json(name = "revenue") var revenue: Long? = null,
     @field:Json(name = "runtime") var runtime: Int? = null,
-    @field:Json(name = "spoken_languages") var spokenLanguages: List<SpokenLanguages> = listOf(),
+    @field:Json(name = "spoken_languages") var spokenLanguages: List<SpokenLanguagesDto> = listOf(),
     @field:Json(name = "status") var status: String? = null,
     @field:Json(name = "tagline") var tagline: String? = null,
     @field:Json(name = "title") var title: String? = null,
@@ -35,7 +35,7 @@ data class MovieDetailsDto(
     @field:Json(name = "video") var video: Boolean? = null,
     @field:Json(name = "vote_average") var voteAverage: Double? = null,
     @field:Json(name = "vote_count") var voteCount: Int? = null,
-    @field:Json(name = "videos") var videos: Videos? = null,
+    @field:Json(name = "videos") var videos: VideosDto? = null,
     @field:Json(name = "credits") var credits: CreditsDto? = null
 
 )

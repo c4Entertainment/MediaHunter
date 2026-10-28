@@ -4,8 +4,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -18,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.c4entertainment.moviehunter.R
 
 @Composable
@@ -29,6 +31,8 @@ fun MovieScreenTopBar(
     toggleView: () -> Unit,
     onSearchClicked: () -> Unit,
     onSettingsClicked: () -> Unit,
+    onTorrentSearchClicked: () -> Unit,
+    onTorrentSettingsClicked: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     TopAppBar(
@@ -55,9 +59,25 @@ fun MovieScreenTopBar(
 //                    tint = MaterialTheme.colorScheme.onSurface
 //                )
 //            }
+            IconButton(onClick = onTorrentSearchClicked) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ManageSearch,
+                    contentDescription = "Torrent search",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            IconButton(onClick = onTorrentSettingsClicked) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Torrent search settings",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
             IconButton(onClick = toggleView ) {
                 Icon(
-                    imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
                     contentDescription = "View",
                     tint = MaterialTheme.colorScheme.onSurface
                 )

@@ -17,9 +17,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -27,42 +31,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.c4entertainment.moviehunter.domain.model.movie_details.Cast
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
-import com.google.accompanist.swiperefresh.SwipeRefreshState
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 fun MovieDetails(
     state: MovieDetailsState,
-    swipeRefreshState: SwipeRefreshState,
+    isRefreshing: Boolean,
     viewModel: MovieDetailsViewModel,
     id: String,
     type: String,
     modifier: Modifier = Modifier
 ) {
     val TAG = "MovieDetails"
+    val pullToRefreshState = rememberPullToRefreshState()
 
     Box(modifier) {
         if (state.error == null) {
             Column(modifier) {
 
-                SwipeRefresh(
+                PullToRefreshBox(
                     modifier = modifier,
-                    state = swipeRefreshState,
+                    isRefreshing = isRefreshing,
                     onRefresh = { viewModel.getMovie(id.toInt(), type) },
-                    indicator = { refreshState, refreshTrigger ->
-                        SwipeRefreshIndicator(
-                            state = refreshState,
-                            refreshTriggerDistance = refreshTrigger,
-                            backgroundColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                    state = pullToRefreshState,
+                    indicator = {
+                        PullToRefreshDefaults.Indicator(
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            isRefreshing = isRefreshing,
+                            state = pullToRefreshState,
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     },
                 ) {
@@ -75,7 +78,7 @@ fun MovieDetails(
                             }
 
                             item {
-                                Divider(Modifier.padding(top = 8.dp, bottom = 16.dp))
+                                HorizontalDivider(Modifier.padding(top = 8.dp, bottom = 16.dp))
                             }
 
                             item {
@@ -148,7 +151,7 @@ fun MovieDetails(
                         }
 
                         item {
-                            Divider(Modifier.padding(top = 16.dp, bottom = 8.dp))
+                            HorizontalDivider(Modifier.padding(top = 16.dp, bottom = 8.dp))
                         }
                     }
 
@@ -200,7 +203,7 @@ fun ActorCard(actor: Cast) {
             .clickable(
                 indication = LocalIndication.current,
                 interactionSource = remember { MutableInteractionSource() },
-                onClick = { ContextCompat.startActivity(context, launchResourceIntent, null) }
+                onClick = { context.startActivity(launchResourceIntent) }
             )
     ) {
             AsyncImage(

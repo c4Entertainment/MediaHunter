@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,7 +35,7 @@ fun MovieListItemInfo(
                 tint = Color.Red
             )
 
-            Divider(modifier = Modifier.width(6.dp))
+            HorizontalDivider(modifier = Modifier.width(6.dp))
         }
 
 

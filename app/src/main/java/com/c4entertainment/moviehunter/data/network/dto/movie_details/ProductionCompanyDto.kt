@@ -1,6 +1,8 @@
 package com.c4entertainment.moviehunter.data.network.dto.movie_details
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+@JsonClass(generateAdapter = true)
 data class ProductionCompanyDto (
 
   @field:Json(name = "id"             ) var id            : Int?    = null,

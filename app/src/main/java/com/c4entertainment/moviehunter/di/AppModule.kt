@@ -9,8 +9,8 @@ import com.c4entertainment.moviehunter.data.repository.AuthRepositoryImpl
 import com.c4entertainment.moviehunter.domain.repository.AuthRepository
 import com.c4entertainment.moviehunter.util.ConnectivityObserver
 import com.c4entertainment.moviehunter.util.NetworkConnectivityObserver
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.Firebase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

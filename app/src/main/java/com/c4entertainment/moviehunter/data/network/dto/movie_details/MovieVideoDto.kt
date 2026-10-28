@@ -1,7 +1,9 @@
 package com.c4entertainment.moviehunter.data.network.dto.movie_details
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 
+@JsonClass(generateAdapter = true)
 data class MovieVideoDto (
 
   @field:Json(name = "iso_639_1"    ) var iso6391     : String?  = null,

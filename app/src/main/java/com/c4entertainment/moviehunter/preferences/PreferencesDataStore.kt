@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,7 +23,7 @@ constructor(app: MovieApp) {
 
 //    private val datastore: DataStore<Preferences> = app.createDataStore(name = "settings")
 
-    private val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+    private val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = SETTINGS_DATASTORE_NAME)
 
     private val datastore = app.datastore
 
@@ -111,6 +112,24 @@ constructor(app: MovieApp) {
     }
 
     companion object {
+        // Not "settings": the embedded TorrentSearch library already uses that file name.
+        const val SETTINGS_DATASTORE_NAME = "movie_hunter_settings"
+
+        /**
+         * Moves settings saved under the old "settings" file name to [SETTINGS_DATASTORE_NAME].
+         * Runs only once: after that, "settings" belongs to TorrentSearch.
+         */
+        fun migrateLegacyFile(context: Context) {
+            val prefs = context.getSharedPreferences("settings_migration", Context.MODE_PRIVATE)
+            if (prefs.getBoolean("done", false)) return
+
+            val dir = File(context.filesDir, "datastore")
+            val legacy = File(dir, "settings.preferences_pb")
+            val current = File(dir, "$SETTINGS_DATASTORE_NAME.preferences_pb")
+            if (legacy.exists() && !current.exists()) legacy.renameTo(current)
+            prefs.edit().putBoolean("done", true).apply()
+        }
+
         private val USE_GRID = booleanPreferencesKey("use_grid_key")
         private val USE_DYNAMIC_COLOR = booleanPreferencesKey("use_dynamic_color_key")
         private val DATA_THEME_CONFIG = stringPreferencesKey("data_theme_config_key")

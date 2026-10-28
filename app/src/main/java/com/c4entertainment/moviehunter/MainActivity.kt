@@ -33,8 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -62,7 +63,6 @@ import com.c4entertainment.moviehunter.ui.theme.MovieGuruTheme
 import com.c4entertainment.moviehunter.util.DarkThemeConfig
 import com.c4entertainment.moviehunter.util.ConnectivityObserver
 import com.c4entertainment.moviehunter.util.MovieTVFilterConfig
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
@@ -114,7 +114,6 @@ class MainActivity : FragmentActivity() {
 
         setContent {
             val darkTheme = shouldUseDarkTheme(uiState)
-            val systemUiController = rememberSystemUiController()
             val useDynamicColor = useDynamicColor(uiState = uiState)
             val snackbarHostState = remember { SnackbarHostState() }
             val showSettingsDialog = remember { mutableStateOf(false) }
@@ -128,8 +127,10 @@ class MainActivity : FragmentActivity() {
 
 
             // Update the dark content of the system bars to match the theme
-            DisposableEffect(systemUiController, darkTheme) {
-                systemUiController.systemBarsDarkContentEnabled = !darkTheme
+            DisposableEffect(darkTheme) {
+                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                insetsController.isAppearanceLightStatusBars = !darkTheme
+                insetsController.isAppearanceLightNavigationBars = !darkTheme
                 onDispose {}
             }
 

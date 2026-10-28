@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +29,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.c4entertainment.moviehunter.R
 import com.c4entertainment.moviehunter.domain.model.movie_details.MovieVideo
 
@@ -91,7 +91,7 @@ fun MovieVideos(
                                 modifier = Modifier.padding(8.dp),
                                 style = MaterialTheme.typography.titleSmall
                             )
-                            Divider(Modifier.padding(bottom = 8.dp))
+                            HorizontalDivider(Modifier.padding(bottom = 8.dp))
                         }
 
 
