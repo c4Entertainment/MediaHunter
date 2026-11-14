@@ -8,7 +8,12 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.c4entertainment.mediahunter.data.mappers.toMovie
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
+import com.c4entertainment.mediahunter.domain.model.catalog.ArtistAlbum
+import com.c4entertainment.mediahunter.domain.model.catalog.ArtistRef
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicGenre
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicRegion
 import com.c4entertainment.mediahunter.domain.model.movie.Movie
 import com.c4entertainment.mediahunter.domain.repository.CatalogRepository
 import com.c4entertainment.mediahunter.domain.repository.MovieRepository
@@ -75,8 +80,34 @@ class MovieViewModel @Inject constructor(
     private val _catalogState = MutableStateFlow(CatalogUiState())
     val catalogState: StateFlow<CatalogUiState> = _catalogState.asStateFlow()
 
-    private val catalogCache = mutableMapOf<CatalogSection, List<CatalogItem>>()
+    private val catalogCache = mutableMapOf<Pair<CatalogSection, MusicChart?>, List<CatalogItem>>()
     private var catalogJob: Job? = null
+
+    private val _musicChart = MutableStateFlow(MusicChart())
+    val musicChart: StateFlow<MusicChart> = _musicChart.asStateFlow()
+
+    init {
+        // The remembered chart has to be in place before the first music load.
+        viewModelScope.launch {
+            val settings = userSettingsRepository.userSettings.first()
+            // A chart picked before this arrived wins over the stored one.
+            if (_musicChart.value == MusicChart()) {
+                _musicChart.value = MusicChart(
+                    region = MusicRegion.entries.firstOrNull { it.name == settings.musicRegion }
+                        ?: MusicRegion.Worldwide,
+                    genre = MusicGenre.entries.firstOrNull { it.name == settings.musicGenre },
+                )
+            }
+            val section = _selectedSection.value
+            if (section != null && section.isMusic && _catalogState.value.query == null) {
+                loadCatalog(section, forceRefresh = false)
+            }
+        }
+    }
+
+    /** The albums of a Deezer artist, for the artist sheet. */
+    suspend fun artistAlbums(ref: ArtistRef): Result<List<ArtistAlbum>> =
+        catalogRepository.artistAlbums(ref.deezerId, ref.name)
 
 
     fun onMovieEvent(event: MovieEvent) {
@@ -122,6 +153,16 @@ class MovieViewModel @Inject constructor(
             is MovieEvent.OnCatalogSectionSelected -> {
                 _selectedSection.value = event.section
                 loadCatalog(event.section, forceRefresh = false)
+            }
+
+            is MovieEvent.OnMusicChartChanged -> {
+                val chart = event.chart
+                _musicChart.value = chart
+                viewModelScope.launch {
+                    userSettingsRepository.setMusicChart(chart.region.name, chart.genre?.name)
+                }
+                val section = _selectedSection.value
+                if (section != null && section.isMusic) loadCatalog(section, forceRefresh = false)
             }
 
             MovieEvent.OnCatalogRefresh -> {
@@ -176,14 +217,16 @@ class MovieViewModel @Inject constructor(
 
     private fun loadCatalog(section: CatalogSection, forceRefresh: Boolean) {
         catalogJob?.cancel()
-        val cached = catalogCache[section].orEmpty()
+        val chart = _musicChart.value.takeIf { section.isMusic }
+        val cacheKey = section to chart
+        val cached = catalogCache[cacheKey].orEmpty()
         _catalogState.value = CatalogUiState(items = cached, isLoading = forceRefresh || cached.isEmpty())
         if (!forceRefresh && cached.isNotEmpty()) return
 
         catalogJob = viewModelScope.launch {
-            catalogRepository.getItems(section)
+            catalogRepository.getItems(section, chart ?: MusicChart())
                 .onSuccess { items ->
-                    catalogCache[section] = items
+                    catalogCache[cacheKey] = items
                     _catalogState.value = CatalogUiState(items = items)
                 }
                 .onFailure { error ->

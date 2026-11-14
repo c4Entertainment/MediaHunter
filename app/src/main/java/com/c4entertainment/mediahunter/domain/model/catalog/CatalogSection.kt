@@ -4,7 +4,12 @@ package com.c4entertainment.mediahunter.domain.model.catalog
 enum class CatalogSection(val label: String) {
     Albums("Albums"),
     Songs("Songs"),
+    Artists("Artists"),
     Books("Books"),
     Games("Games"),
     Anime("Anime"),
+;
+
+    /** Sections backed by Deezer charts, which the music filters apply to. */
+    val isMusic: Boolean get() = this == Albums || this == Songs || this == Artists
 }

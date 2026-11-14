@@ -30,4 +30,8 @@ data class UserSettings(
     val showVideos: Boolean,
     val movieTV: String,
     val movieTVBackup: String,
+    /** [com.c4entertainment.mediahunter.domain.model.catalog.MusicRegion] name. */
+    val musicRegion: String = "Worldwide",
+    /** [com.c4entertainment.mediahunter.domain.model.catalog.MusicGenre] name, or null for all genres. */
+    val musicGenre: String? = null,
 )

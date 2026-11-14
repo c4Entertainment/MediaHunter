@@ -44,6 +44,8 @@ constructor(app: MediaHunterApp) {
             showVideos = preferences[SHOW_VIDEOS] ?: true,
             movieTV = preferences[MOVIE_TV_FILTER] ?: MovieTVFilterConfig.MOVIE,
             movieTVBackup = preferences[MOVIE_TV_BACKUP_FILTER] ?: MovieTVFilterConfig.MOVIE,
+            musicRegion = preferences[MUSIC_REGION] ?: "Worldwide",
+            musicGenre = preferences[MUSIC_GENRE],
         )
     }
 
@@ -119,6 +121,15 @@ constructor(app: MediaHunterApp) {
         }
     }
 
+    fun setMusicChart(region: String, genre: String?) {
+        scope.launch {
+            datastore.edit { preferences ->
+                preferences[MUSIC_REGION] = region
+                if (genre != null) preferences[MUSIC_GENRE] = genre else preferences.remove(MUSIC_GENRE)
+            }
+        }
+    }
+
     companion object {
         const val SETTINGS_DATASTORE_NAME = "media_hunter_settings"
 
@@ -132,5 +143,7 @@ constructor(app: MediaHunterApp) {
         private val MOVIE_TV_FILTER = stringPreferencesKey("movie_tv_filter_key")
         private val MOVIE_TV_BACKUP_FILTER = stringPreferencesKey("movie_tv_backup_filter_key")
 
+        private val MUSIC_REGION = stringPreferencesKey("music_region_key")
+        private val MUSIC_GENRE = stringPreferencesKey("music_genre_key")
     }
 }

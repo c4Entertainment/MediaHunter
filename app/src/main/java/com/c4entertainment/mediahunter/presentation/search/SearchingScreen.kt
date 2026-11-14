@@ -2,8 +2,8 @@ package com.c4entertainment.mediahunter.presentation.search
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -51,7 +51,8 @@ fun SearchScreen(
         modifier = Modifier.fillMaxSize(),
         topBar =
         {
-            AnimatedVisibility(visible = true) {
+            // A Column, so the search bar sits below the status bar rather than under it.
+            Column {
                 Spacer(Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
                 SearchWidget(
                     text = viewModel.searchQuery.value,

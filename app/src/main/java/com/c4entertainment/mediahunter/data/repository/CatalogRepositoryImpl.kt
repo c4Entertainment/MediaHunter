@@ -9,12 +9,17 @@ import com.c4entertainment.mediahunter.data.network.dto.catalog.AniListMediaDto
 import com.c4entertainment.mediahunter.data.network.dto.catalog.AniListRequest
 import com.c4entertainment.mediahunter.data.network.dto.catalog.AniListVariables
 import com.c4entertainment.mediahunter.data.network.dto.catalog.DeezerAlbumDto
+import com.c4entertainment.mediahunter.data.network.dto.catalog.DeezerArtistDto
 import com.c4entertainment.mediahunter.data.network.dto.catalog.DeezerTrackDto
 import com.c4entertainment.mediahunter.data.network.dto.catalog.OpenLibraryWorkDto
 import com.c4entertainment.mediahunter.data.network.dto.catalog.RawgGameDto
 import com.c4entertainment.mediahunter.domain.model.catalog.AnimeRef
+import com.c4entertainment.mediahunter.domain.model.catalog.ArtistAlbum
+import com.c4entertainment.mediahunter.domain.model.catalog.ArtistRef
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicRegion
 import com.c4entertainment.mediahunter.domain.repository.CatalogRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -47,10 +52,15 @@ class CatalogRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getItems(section: CatalogSection) = load {
+    override suspend fun getItems(section: CatalogSection, chart: MusicChart) = load {
         when (section) {
-            CatalogSection.Albums -> topAlbums().map { it.toCatalogItem() }
-            CatalogSection.Songs -> deezer.getTopTracks().data.map { it.toCatalogItem() }
+            CatalogSection.Albums -> when {
+                chart.editorsPicks -> deezer.getEditorsPicks().data
+                chart == MusicChart() -> topAlbums()
+                else -> albumsOf(tracks(chart))
+            }.map { it.toCatalogItem() }
+            CatalogSection.Songs -> tracks(chart).map { it.toCatalogItem() }
+            CatalogSection.Artists -> artists(chart).map { it.toCatalogItem() }
             CatalogSection.Books -> openLibrary.getTrending().works.map { it.toCatalogItem() }
             CatalogSection.Games -> {
                 requireRawgKey()
@@ -65,6 +75,7 @@ class CatalogRepositoryImpl @Inject constructor(
         when (section) {
             CatalogSection.Albums -> deezer.searchAlbums(query).data.map { it.toCatalogItem() }
             CatalogSection.Songs -> deezer.searchTracks(query).data.map { it.toCatalogItem() }
+            CatalogSection.Artists -> deezer.searchArtists(query).data.map { it.toCatalogItem() }
             CatalogSection.Books -> openLibrary.search(query).docs.map { it.toCatalogItem() }
             CatalogSection.Games -> {
                 requireRawgKey()
@@ -81,13 +92,50 @@ class CatalogRepositoryImpl @Inject constructor(
      */
     private suspend fun topAlbums(): List<DeezerAlbumDto> = coroutineScope {
         val albumChart = async { deezer.getTopAlbums().data }
-        val trackChart = async { runCatching { deezer.getTopTracks().data }.getOrDefault(emptyList()) }
-        val fromTracks = trackChart.await()
-            .filter { track -> !track.album?.title.equals(track.title, ignoreCase = true) }
-            .mapNotNull { track ->
-                track.album?.let { album -> album.copy(artist = album.artist ?: track.artist) }
-            }
-        (albumChart.await() + fromTracks).distinctBy { it.id }
+        val trackChart = async { runCatching { deezer.getChartTracks().data }.getOrDefault(emptyList()) }
+        (albumChart.await() + albumsOf(trackChart.await())).distinctBy { it.id }
+    }
+
+    /** Albums of [tracks] in chart order, without singles (named after their track). */
+    private fun albumsOf(tracks: List<DeezerTrackDto>): List<DeezerAlbumDto> = tracks
+        .filter { track -> !track.album?.title.equals(track.title, ignoreCase = true) }
+        .mapNotNull { track ->
+            track.album?.let { album -> album.copy(artist = album.artist ?: track.artist) }
+        }
+        .distinctBy { it.id }
+
+    /** A genre has its own chart; otherwise the region's official "Top" playlist. */
+    private suspend fun tracks(chart: MusicChart): List<DeezerTrackDto> =
+        chart.genre?.let { deezer.getChartTracks(it.deezerId).data }
+            ?: deezer.getPlaylistTracks(chart.region.playlistId).data
+
+    private suspend fun artists(chart: MusicChart): List<DeezerArtistDto> = when {
+        chart.genre != null -> deezer.getChartArtists(chart.genre.deezerId).data
+        chart.region == MusicRegion.Worldwide -> deezer.getChartArtists(0).data
+        // Only genres and the world have artist charts: derive a region's from its tracks.
+        else -> tracks(chart).mapNotNull { it.artist }.distinctBy { it.id }
+    }
+
+    override suspend fun artistAlbums(artistId: Long, artistName: String): Result<List<ArtistAlbum>> = try {
+        Result.success(
+            deezer.getArtistAlbums(artistId).data
+                .filter { it.recordType in ARTIST_RELEASE_TYPES }
+                .sortedByDescending { it.releaseDate.orEmpty() }
+                .map { album ->
+                    ArtistAlbum(
+                        title = album.title,
+                        recordType = album.recordType.orEmpty(),
+                        year = album.releaseDate?.take(4)?.takeIf { it.length == 4 },
+                        imageUrl = album.coverBig,
+                        searchTerms = "$artistName ${album.title.forTorrentSearch()}",
+                    )
+                }
+                .distinctBy { it.searchTerms }
+        )
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
     private suspend fun load(block: suspend () -> List<CatalogItem>): Result<List<CatalogItem>> = try {
@@ -107,6 +155,17 @@ class CatalogRepositoryImpl @Inject constructor(
             .data?.page?.media.orEmpty()
             .mapNotNull { it.toCatalogItem() }
 }
+
+private val ARTIST_RELEASE_TYPES = setOf("album", "ep", "compile")
+
+private fun DeezerArtistDto.toCatalogItem() = CatalogItem(
+    id = "deezer-artist-$id",
+    title = name,
+    subtitle = null,
+    imageUrl = pictureBig,
+    searchTerms = name,
+    artist = id?.let { ArtistRef(it, name) },
+)
 
 private fun DeezerAlbumDto.toCatalogItem(): CatalogItem {
     val artist = artist?.name

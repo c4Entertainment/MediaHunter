@@ -4,6 +4,7 @@ import com.c4entertainment.mediahunter.BuildConfig
 import com.c4entertainment.mediahunter.data.network.dto.catalog.AniListRequest
 import com.c4entertainment.mediahunter.data.network.dto.catalog.AniListResponseDto
 import com.c4entertainment.mediahunter.data.network.dto.catalog.DeezerAlbumChartDto
+import com.c4entertainment.mediahunter.data.network.dto.catalog.DeezerArtistChartDto
 import com.c4entertainment.mediahunter.data.network.dto.catalog.DeezerTrackChartDto
 import com.c4entertainment.mediahunter.data.network.dto.catalog.KitsuMappingsDto
 import com.c4entertainment.mediahunter.data.network.dto.catalog.OpenLibrarySearchDto
@@ -12,6 +13,7 @@ import com.c4entertainment.mediahunter.data.network.dto.catalog.RawgGamesDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 /** Deezer's public API. No key needed. */
@@ -19,9 +21,40 @@ interface DeezerAPI {
     @GET("chart/0/albums")
     suspend fun getTopAlbums(@Query("limit") limit: Int = 50): DeezerAlbumChartDto
 
-    /** The album chart can be tiny (3 entries in Nov 2026); the track chart fills it out. */
-    @GET("chart/0/tracks")
-    suspend fun getTopTracks(@Query("limit") limit: Int = 100): DeezerTrackChartDto
+    /** Genre 0 is the overall chart. The album chart can be tiny, so tracks also fill out Albums. */
+    @GET("chart/{genre}/tracks")
+    suspend fun getChartTracks(
+        @Path("genre") genre: Int = 0,
+        @Query("limit") limit: Int = 100,
+    ): DeezerTrackChartDto
+
+    @GET("chart/{genre}/artists")
+    suspend fun getChartArtists(
+        @Path("genre") genre: Int = 0,
+        @Query("limit") limit: Int = 50,
+    ): DeezerArtistChartDto
+
+    /** Deezer's official "Top <country>" playlists are the per-region charts. */
+    @GET("playlist/{id}/tracks")
+    suspend fun getPlaylistTracks(
+        @Path("id") id: Long,
+        @Query("limit") limit: Int = 100,
+    ): DeezerTrackChartDto
+
+    @GET("editorial/0/selection")
+    suspend fun getEditorsPicks(): DeezerAlbumChartDto
+
+    @GET("search/artist")
+    suspend fun searchArtists(
+        @Query("q") query: String,
+        @Query("limit") limit: Int = 50,
+    ): DeezerArtistChartDto
+
+    @GET("artist/{id}/albums")
+    suspend fun getArtistAlbums(
+        @Path("id") id: Long,
+        @Query("limit") limit: Int = 100,
+    ): DeezerAlbumChartDto
 
     @GET("search/track")
     suspend fun searchTracks(

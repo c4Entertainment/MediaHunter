@@ -43,4 +43,7 @@ interface UserSettingsRepository {
     suspend fun setMovieTV(movieTV: String)
 
     suspend fun setMovieTVBackup(movieTV: String)
+
+    /** Remembers the music chart filters; [genre] null means all genres. */
+    suspend fun setMusicChart(region: String, genre: String?)
 }

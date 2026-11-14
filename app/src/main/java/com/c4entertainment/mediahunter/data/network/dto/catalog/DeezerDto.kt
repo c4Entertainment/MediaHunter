@@ -28,10 +28,18 @@ data class DeezerAlbumDto(
     @field:Json(name = "title") val title: String,
     @field:Json(name = "cover_big") val coverBig: String? = null,
     @field:Json(name = "record_type") val recordType: String? = null,
+    @field:Json(name = "release_date") val releaseDate: String? = null,
     @field:Json(name = "artist") val artist: DeezerArtistDto? = null,
 )
 
 @JsonClass(generateAdapter = true)
 data class DeezerArtistDto(
+    @field:Json(name = "id") val id: Long? = null,
     @field:Json(name = "name") val name: String,
+    @field:Json(name = "picture_big") val pictureBig: String? = null,
+)
+
+@JsonClass(generateAdapter = true)
+data class DeezerArtistChartDto(
+    @field:Json(name = "data") val data: List<DeezerArtistDto> = emptyList(),
 )

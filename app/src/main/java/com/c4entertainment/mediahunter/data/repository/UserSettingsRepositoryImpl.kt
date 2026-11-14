@@ -64,5 +64,9 @@ class UserSettingsRepositoryImpl @Inject constructor(
         preferencesDataSource.setMovieTvFilterBackup(movieTV)
     }
 
+    override suspend fun setMusicChart(region: String, genre: String?) {
+        preferencesDataSource.setMusicChart(region, genre)
+    }
+
 
 }

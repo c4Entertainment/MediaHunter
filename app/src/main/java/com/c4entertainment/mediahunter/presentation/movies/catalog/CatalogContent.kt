@@ -6,6 +6,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -26,6 +34,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -51,6 +60,9 @@ import com.c4entertainment.mediahunter.components.movie_listing.PagingDataErrorW
 import com.c4entertainment.mediahunter.components.movie_listing.PagingDataNoResultsWidget
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicGenre
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicRegion
 import com.c4entertainment.mediahunter.presentation.movies.CatalogUiState
 import com.prajwalch.torrentsearch.domain.model.Category
 
@@ -63,17 +75,23 @@ import com.prajwalch.torrentsearch.domain.model.Category
 val CatalogSection.torrentCategory: Category
     get() = when (this) {
         // Music keeps Knaben to music and skips movie/anime-only providers.
-        CatalogSection.Albums, CatalogSection.Songs -> Category.Music
+        CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Artists -> Category.Music
         CatalogSection.Books -> Category.All
         CatalogSection.Games -> Category.Games
         CatalogSection.Anime -> Category.Anime
     }
 
-/** Names the data source too, which RAWG's terms require. */
-private val CatalogSection.sourceLabel: String
-    get() = when (this) {
-        CatalogSection.Albums -> "Top albums on Deezer"
-        CatalogSection.Songs -> "Top songs on Deezer"
+/** Names the data source too, which RAWG's terms require; music also names its chart. */
+private fun CatalogSection.sourceLabel(chart: MusicChart): String = when (this) {
+        CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Artists -> {
+            val kind = label.lowercase()
+            val scope = when {
+                this == CatalogSection.Albums && chart.editorsPicks -> null
+                chart.genre != null -> chart.genre.label
+                else -> chart.region.label
+            }
+            if (scope == null) "Editor's picks · Deezer" else "Top $kind · $scope · Deezer"
+        }
         CatalogSection.Books -> "Trending today on Open Library"
         CatalogSection.Games -> "Popular this year · data from RAWG.io"
         CatalogSection.Anime -> "Trending on AniList"
@@ -81,7 +99,7 @@ private val CatalogSection.sourceLabel: String
 
 private val CatalogSection.sourceName: String
     get() = when (this) {
-        CatalogSection.Albums, CatalogSection.Songs -> "Deezer"
+        CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Artists -> "Deezer"
         CatalogSection.Books -> "Open Library"
         CatalogSection.Games -> "RAWG.io"
         CatalogSection.Anime -> "AniList"
@@ -91,6 +109,7 @@ private val CatalogSection.searchHint: String
     get() = when (this) {
         CatalogSection.Albums -> "Search albums or artists"
         CatalogSection.Songs -> "Search songs or artists"
+        CatalogSection.Artists -> "Search artists"
         CatalogSection.Books -> "Search books or authors"
         CatalogSection.Games -> "Search games"
         CatalogSection.Anime -> "Search anime"
@@ -150,7 +169,7 @@ private fun CatalogSearchField(
 
 private val CatalogSection.imageAspectRatio: Float
     get() = when (this) {
-        CatalogSection.Albums, CatalogSection.Songs -> 1f
+        CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Artists -> 1f
         CatalogSection.Games -> 16f / 9f
         CatalogSection.Books, CatalogSection.Anime -> 2f / 3f
     }
@@ -166,6 +185,8 @@ fun CatalogContent(
     searchOpen: Boolean = false,
     onSearch: (query: String, immediate: Boolean) -> Unit = { _, _ -> },
     onCloseSearch: () -> Unit = {},
+    musicChart: MusicChart = MusicChart(),
+    onMusicChartChange: (MusicChart) -> Unit = {},
 ) = Column(modifier) {
     if (searchOpen) {
         CatalogSearchField(
@@ -174,6 +195,10 @@ fun CatalogContent(
             onSearch = onSearch,
             onClose = onCloseSearch,
         )
+    }
+    // Above the grid so it stays on screen for empty and error states too.
+    if (section.isMusic && state.query == null) {
+        MusicChartFilters(section, musicChart, onMusicChartChange)
     }
     when {
         state.items.isEmpty() && state.isLoading -> Box(Modifier.fillMaxSize()) {
@@ -197,7 +222,7 @@ fun CatalogContent(
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
                         text = state.query?.let { "Results for “$it” · ${section.sourceName}" }
-                            ?: section.sourceLabel,
+                            ?: section.sourceLabel(musicChart),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -248,6 +273,82 @@ private fun CatalogGridItem(
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+/** Region and genre dropdowns, plus an Editor's picks toggle on Albums. */
+@Composable
+private fun MusicChartFilters(
+    section: CatalogSection,
+    chart: MusicChart,
+    onChange: (MusicChart) -> Unit,
+) {
+    // Editor's picks is an Albums-only chart: it must not lock the other sections' filters.
+    val editorsPicks = section == CatalogSection.Albums && chart.editorsPicks
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        var regionOpen by remember { mutableStateOf(false) }
+        Box {
+            AssistChip(
+                onClick = { regionOpen = true },
+                enabled = chart.genre == null && !editorsPicks,
+                label = { Text("Region: ${chart.region.label} ▾") },
+            )
+            DropdownMenu(
+                expanded = regionOpen,
+                onDismissRequest = { regionOpen = false },
+                modifier = Modifier.heightIn(max = 400.dp),
+            ) {
+                MusicRegion.entries.forEach { region ->
+                    DropdownMenuItem(
+                        text = { Text(region.label) },
+                        onClick = {
+                            regionOpen = false
+                            onChange(chart.copy(region = region))
+                        },
+                    )
+                }
+            }
+        }
+
+        var genreOpen by remember { mutableStateOf(false) }
+        Box {
+            AssistChip(
+                onClick = { genreOpen = true },
+                enabled = !editorsPicks,
+                label = { Text("Genre: ${chart.genre?.label ?: "All"} ▾") },
+            )
+            DropdownMenu(expanded = genreOpen, onDismissRequest = { genreOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text("All") },
+                    onClick = {
+                        genreOpen = false
+                        onChange(chart.copy(genre = null))
+                    },
+                )
+                MusicGenre.entries.forEach { genre ->
+                    DropdownMenuItem(
+                        text = { Text(genre.label) },
+                        onClick = {
+                            genreOpen = false
+                            onChange(chart.copy(genre = genre))
+                        },
+                    )
+                }
+            }
+        }
+
+        if (section == CatalogSection.Albums) {
+            FilterChip(
+                selected = editorsPicks,
+                onClick = { onChange(chart.copy(editorsPicks = !chart.editorsPicks)) },
+                label = { Text("Editor's picks") },
             )
         }
     }

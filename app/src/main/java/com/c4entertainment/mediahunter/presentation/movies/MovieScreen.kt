@@ -26,7 +26,11 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.c4entertainment.mediahunter.MainActivityUiState
 import com.c4entertainment.mediahunter.components.MovieContent
+import com.c4entertainment.mediahunter.domain.model.catalog.ArtistAlbum
+import com.c4entertainment.mediahunter.domain.model.catalog.ArtistRef
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
+import com.c4entertainment.mediahunter.presentation.movies.catalog.ArtistTorrentSearchSheet
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.mediahunter.presentation.movies.catalog.AnimeTorrentSearchSheet
 import com.c4entertainment.mediahunter.presentation.movies.catalog.searchTarget
@@ -56,6 +60,7 @@ fun MovieScreen(
     val movieTV = shouldShowMovieOrTV(settingsState)
     val selectedSection by viewModel.selectedSection.collectAsStateWithLifecycle()
     val catalogState by viewModel.catalogState.collectAsStateWithLifecycle()
+    val musicChart by viewModel.musicChart.collectAsStateWithLifecycle()
 
     MovieScreen(
         movies = movies,
@@ -67,6 +72,8 @@ fun MovieScreen(
         selectedSection = selectedSection,
         catalogState = catalogState,
         resolveKitsuId = viewModel::kitsuIdFor,
+        musicChart = musicChart,
+        loadArtistAlbums = viewModel::artistAlbums,
     )
 
 }
@@ -83,6 +90,8 @@ fun MovieScreen(
     selectedSection: CatalogSection?,
     catalogState: CatalogUiState,
     resolveKitsuId: suspend (aniListId: Long) -> String?,
+    musicChart: MusicChart,
+    loadArtistAlbums: suspend (ArtistRef) -> Result<List<ArtistAlbum>>,
 ) {
 
     val context = LocalContext.current
@@ -95,6 +104,8 @@ fun MovieScreen(
     BackHandler(enabled = catalogSearchOpen && selectedSection != null, onBack = closeCatalogSearch)
     // Anime opens an episode picker; the search then targets that exact episode.
     var animeSheetItem by remember { mutableStateOf<CatalogItem?>(null) }
+    // Artists open a sheet with their discography and albums.
+    var artistSheetItem by remember { mutableStateOf<CatalogItem?>(null) }
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -140,6 +151,8 @@ fun MovieScreen(
                 movieEvent(MovieEvent.OnCatalogSectionSelected(it))
             },
             onCatalogRefresh = { movieEvent(MovieEvent.OnCatalogRefresh) },
+            musicChart = musicChart,
+            onMusicChartChange = { movieEvent(MovieEvent.OnMusicChartChanged(it)) },
             catalogSearchOpen = catalogSearchOpen,
             onCatalogSearch = { query, immediate -> movieEvent(MovieEvent.OnCatalogSearch(query, immediate)) },
             onCloseCatalogSearch = closeCatalogSearch,
@@ -147,6 +160,10 @@ fun MovieScreen(
                 val section = selectedSection ?: return@MovieContent
                 if (item.anime != null) {
                     animeSheetItem = item
+                    return@MovieContent
+                }
+                if (item.artist != null) {
+                    artistSheetItem = item
                     return@MovieContent
                 }
                 context.startActivity(
@@ -183,6 +200,22 @@ fun MovieScreen(
                 }
             },
             onDismiss = { animeSheetItem = null },
+        )
+    }
+
+    val sheetArtist = artistSheetItem?.artist
+    if (sheetArtist != null) {
+        ArtistTorrentSearchSheet(
+            artist = sheetArtist,
+            imageUrl = artistSheetItem?.imageUrl,
+            loadAlbums = { loadArtistAlbums(sheetArtist) },
+            onSearch = { query ->
+                artistSheetItem = null
+                context.startActivity(
+                    TorrentSearch.searchIntent(context, torrentQuery(query), Category.Music)
+                )
+            },
+            onDismiss = { artistSheetItem = null },
         )
     }
 

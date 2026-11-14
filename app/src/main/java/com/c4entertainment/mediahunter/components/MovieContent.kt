@@ -20,6 +20,7 @@ import com.c4entertainment.mediahunter.components.movie_listing.view.GridContent
 import com.c4entertainment.mediahunter.components.movie_listing.view.ListContent
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
+import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
 import com.c4entertainment.mediahunter.domain.model.movie.Movie
 import com.c4entertainment.mediahunter.presentation.movies.CatalogUiState
 import com.c4entertainment.mediahunter.presentation.movies.catalog.CatalogContent
@@ -43,6 +44,8 @@ fun MovieContent(
     catalogSearchOpen: Boolean = false,
     onCatalogSearch: (query: String, immediate: Boolean) -> Unit = { _, _ -> },
     onCloseCatalogSearch: () -> Unit = {},
+    musicChart: MusicChart = MusicChart(),
+    onMusicChartChange: (MusicChart) -> Unit = {},
 ) {
     val isRefreshing = content.loadState.refresh is LoadState.Loading
     val pullToRefreshState = rememberPullToRefreshState()
@@ -67,6 +70,8 @@ fun MovieContent(
                 searchOpen = catalogSearchOpen,
                 onSearch = onCatalogSearch,
                 onCloseSearch = onCloseCatalogSearch,
+                musicChart = musicChart,
+                onMusicChartChange = onMusicChartChange,
             )
             return@Column
         }
