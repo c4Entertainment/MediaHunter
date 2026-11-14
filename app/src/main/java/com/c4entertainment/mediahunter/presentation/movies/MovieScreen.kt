@@ -33,6 +33,8 @@ import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
 import com.c4entertainment.mediahunter.presentation.movies.catalog.ArtistTorrentSearchSheet
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.mediahunter.presentation.movies.catalog.AnimeTorrentSearchSheet
+import com.c4entertainment.mediahunter.presentation.movies.catalog.MusicActionSheet
+import com.c4entertainment.mediahunter.domain.model.external.ExternalApps
 import com.c4entertainment.mediahunter.presentation.movies.catalog.searchTarget
 import com.prajwalch.torrentsearch.domain.model.Category
 import kotlinx.coroutines.launch
@@ -106,6 +108,7 @@ fun MovieScreen(
     var animeSheetItem by remember { mutableStateOf<CatalogItem?>(null) }
     // Artists open a sheet with their discography and albums.
     var artistSheetItem by remember { mutableStateOf<CatalogItem?>(null) }
+    var musicSheetItem by remember { mutableStateOf<CatalogItem?>(null) }
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -166,6 +169,11 @@ fun MovieScreen(
                     artistSheetItem = item
                     return@MovieContent
                 }
+                // Only sections with downloader apps get the choice.
+                if (ExternalApps.forSection(section).isNotEmpty()) {
+                    musicSheetItem = item
+                    return@MovieContent
+                }
                 context.startActivity(
                     TorrentSearch.searchIntent(
                         context,
@@ -174,6 +182,26 @@ fun MovieScreen(
                     )
                 )
             },
+        )
+    }
+
+    val musicItem = musicSheetItem
+    val musicSection = selectedSection
+    if (musicItem != null && musicSection != null) {
+        MusicActionSheet(
+            item = musicItem,
+            apps = ExternalApps.forSection(musicSection),
+            onSearchTorrents = {
+                musicSheetItem = null
+                context.startActivity(
+                    TorrentSearch.searchIntent(
+                        context,
+                        torrentQuery(musicItem.searchTerms),
+                        musicSection.torrentCategory,
+                    )
+                )
+            },
+            onDismiss = { musicSheetItem = null },
         )
     }
 

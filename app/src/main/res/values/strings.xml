@@ -50,4 +50,15 @@
     <string name="not_connected">⚠️ You aren’t connected to the internet</string>
     <string name="back">Back</string>
 
+    <string name="settings_downloader_apps">Downloader apps</string>
+    <string name="downloader_installed">Installed</string>
+    <string name="downloader_not_installed">Not installed</string>
+    <string name="downloader_open">Open</string>
+    <string name="downloader_get">Get</string>
+    <string name="downloader_failed">Couldn\'t open %1$s</string>
+    <string name="action_search_torrents">Search torrents</string>
+    <string name="action_download_with">Download with %1$s</string>
+    <string name="action_get_app">Get %1$s</string>
+    <string name="action_get_app_summary">Not installed — opens GitHub</string>
+    <string name="action_get_app_to_download">Get %1$s to download directly</string>
 </resources>

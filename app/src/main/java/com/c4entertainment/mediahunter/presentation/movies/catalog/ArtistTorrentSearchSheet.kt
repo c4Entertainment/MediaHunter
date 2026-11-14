@@ -5,7 +5,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.c4entertainment.mediahunter.R
+import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
+import com.c4entertainment.mediahunter.domain.model.external.ExternalApps
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +52,23 @@ fun ArtistTorrentSearchSheet(
         albums = loadAlbums()
     }
 
+    val context = LocalContext.current
+    // The first installed downloader gets the download buttons; if none is
+    // installed, one footer row points at the first app's install page.
+    val apps = ExternalApps.forSection(CatalogSection.Artists)
+    val downloader = apps.firstOrNull { ExternalApps.isInstalled(context, it) }
+    val missing = apps.firstOrNull()?.takeIf { downloader == null }
+    val downloadButton: @Composable (String) -> Unit = { query ->
+        if (downloader != null) {
+            IconButton(onClick = {
+                context.sendToApp(downloader, query)
+                onDismiss()
+            }) {
+                Icon(Icons.Default.Download, contentDescription = "Download with ${downloader.name}")
+            }
+        }
+    }
+
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Text(
@@ -57,6 +84,7 @@ fun ArtistTorrentSearchSheet(
             )
             ListItem(
                 headlineContent = { Text("Everything by ${artist.name}") },
+                trailingContent = { downloadButton(artist.name) },
                 modifier = Modifier.clickable { onSearch(artist.name) }
             )
 
@@ -96,10 +124,21 @@ fun ArtistTorrentSearchSheet(
                             supportingContent = {
                                 Text(listOfNotNull(album.year, album.recordType.displayName()).joinToString(" · "))
                             },
+                            trailingContent = { downloadButton(album.searchTerms) },
                             modifier = Modifier.clickable { onSearch(album.searchTerms) }
                         )
                     }
                 }
+            }
+            if (missing != null) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.action_get_app_to_download, missing.name)) },
+                    leadingContent = { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null) },
+                    modifier = Modifier.clickable {
+                        context.openInstallPage(missing)
+                        onDismiss()
+                    },
+                )
             }
         }
     }

@@ -4,6 +4,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Package visibility for ExternalApps (domain/model/external): one line per registered app. -->
+    <queries>
+        <package android:name="com.deniscerri.ytdl" />
+    </queries>
+
     <application
         android:name=".MediaHunterApp"
         android:allowBackup="true"

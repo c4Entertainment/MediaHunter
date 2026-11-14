@@ -36,6 +36,10 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.filled.Download
+import com.c4entertainment.mediahunter.domain.model.external.ExternalApps
+import com.c4entertainment.mediahunter.presentation.movies.catalog.openInstallPage
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -150,6 +154,31 @@ fun SettingsScreen(
                                     Uri.fromParts("package", context.packageName, null),
                                 )
                             )
+                        }
+                    },
+                )
+            }
+
+            HorizontalDivider()
+            SectionTitle(stringResource(R.string.settings_downloader_apps))
+            ExternalApps.all.forEach { app ->
+                val installed = ExternalApps.isInstalled(context, app)
+                ListItem(
+                    headlineContent = { Text(app.name) },
+                    supportingContent = {
+                        Text(stringResource(if (installed) R.string.downloader_installed else R.string.downloader_not_installed))
+                    },
+                    leadingContent = { Icon(Icons.Default.Download, contentDescription = null) },
+                    trailingContent = {
+                        TextButton(onClick = {
+                            if (installed) {
+                                context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                    ?.let { runCatching { context.startActivity(it) } }
+                            } else {
+                                context.openInstallPage(app)
+                            }
+                        }) {
+                            Text(stringResource(if (installed) R.string.downloader_open else R.string.downloader_get))
                         }
                     },
                 )
