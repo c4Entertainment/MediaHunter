@@ -33,6 +33,7 @@ android {
         properties.load(project.rootProject.file("local.properties").inputStream())
 
         buildConfigField("String", "TMDB_API_KEY", "\"${properties.getProperty("TMDB_API_KEY")}\"")
+        buildConfigField("String", "RAWG_API_KEY", "\"${properties.getProperty("RAWG_API_KEY", "")}\"")
         buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"${properties.getProperty("GOOGLE_SERVER_CLIENT_ID")}\"")
 
     }

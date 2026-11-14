@@ -18,7 +18,11 @@ import com.c4entertainment.moviehunter.components.movie_listing.PagingDataErrorW
 import com.c4entertainment.moviehunter.components.movie_listing.PagingDataNoResultsWidget
 import com.c4entertainment.moviehunter.components.movie_listing.view.GridContent
 import com.c4entertainment.moviehunter.components.movie_listing.view.ListContent
+import com.c4entertainment.moviehunter.domain.model.catalog.CatalogItem
+import com.c4entertainment.moviehunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.moviehunter.domain.model.movie.Movie
+import com.c4entertainment.moviehunter.presentation.movies.CatalogUiState
+import com.c4entertainment.moviehunter.presentation.movies.catalog.CatalogContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +34,15 @@ fun MovieContent(
     toggleTV: () -> Unit,
     useGrid: Boolean,
     onClickMovie: (Int) -> Unit,
+    // Catalog sections (Music, Books...) are Home-only; leave these out elsewhere.
+    selectedSection: CatalogSection? = null,
+    catalogState: CatalogUiState = CatalogUiState(),
+    onSectionSelected: ((CatalogSection) -> Unit)? = null,
+    onCatalogRefresh: () -> Unit = {},
+    onCatalogItemClick: (CatalogItem) -> Unit = {},
+    catalogSearchOpen: Boolean = false,
+    onCatalogSearch: (query: String, immediate: Boolean) -> Unit = { _, _ -> },
+    onCloseCatalogSearch: () -> Unit = {},
 ) {
     val isRefreshing = content.loadState.refresh is LoadState.Loading
     val pullToRefreshState = rememberPullToRefreshState()
@@ -41,7 +54,22 @@ fun MovieContent(
             movieTV = moviesOrTV,
             toggleMovie = toggleMovie,
             toggleTV = toggleTV,
+            selectedSection = selectedSection,
+            onSectionSelected = onSectionSelected,
         )
+
+        if (selectedSection != null) {
+            CatalogContent(
+                section = selectedSection,
+                state = catalogState,
+                onRefresh = onCatalogRefresh,
+                onItemClick = onCatalogItemClick,
+                searchOpen = catalogSearchOpen,
+                onSearch = onCatalogSearch,
+                onCloseSearch = onCloseCatalogSearch,
+            )
+            return@Column
+        }
 
         Box(
             modifier = Modifier

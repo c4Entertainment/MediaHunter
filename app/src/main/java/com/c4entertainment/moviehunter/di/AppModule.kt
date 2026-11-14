@@ -4,6 +4,11 @@ import android.content.Context
 import androidx.room.Room
 import com.c4entertainment.moviehunter.MovieApp
 import com.c4entertainment.moviehunter.data.cache.MovieDatabase
+import com.c4entertainment.moviehunter.data.network.api.AniListAPI
+import com.c4entertainment.moviehunter.data.network.api.KitsuAPI
+import com.c4entertainment.moviehunter.data.network.api.DeezerAPI
+import com.c4entertainment.moviehunter.data.network.api.OpenLibraryAPI
+import com.c4entertainment.moviehunter.data.network.api.RawgAPI
 import com.c4entertainment.moviehunter.data.network.api.TMDBMovieAPI
 import com.c4entertainment.moviehunter.data.repository.AuthRepositoryImpl
 import com.c4entertainment.moviehunter.domain.repository.AuthRepository
@@ -50,6 +55,32 @@ object AppModule {
             .create(TMDBMovieAPI::class.java)
     }
 
+
+    private fun retrofit(baseUrl: String): Retrofit = Retrofit.Builder()
+        .baseUrl(baseUrl)
+        .addConverterFactory(MoshiConverterFactory.create())
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideDeezerApi(): DeezerAPI = retrofit(DeezerAPI.BASE_URL).create(DeezerAPI::class.java)
+
+    @Provides
+    @Singleton
+    fun provideOpenLibraryApi(): OpenLibraryAPI =
+        retrofit(OpenLibraryAPI.BASE_URL).create(OpenLibraryAPI::class.java)
+
+    @Provides
+    @Singleton
+    fun provideRawgApi(): RawgAPI = retrofit(RawgAPI.BASE_URL).create(RawgAPI::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAniListApi(): AniListAPI = retrofit(AniListAPI.BASE_URL).create(AniListAPI::class.java)
+
+    @Provides
+    @Singleton
+    fun provideKitsuApi(): KitsuAPI = retrofit(KitsuAPI.BASE_URL).create(KitsuAPI::class.java)
 
     @Provides
     fun provideAuthRepository(@ApplicationContext context: Context): AuthRepository = AuthRepositoryImpl(

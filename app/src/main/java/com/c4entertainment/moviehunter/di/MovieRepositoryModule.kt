@@ -1,5 +1,7 @@
 package com.c4entertainment.moviehunter.di
 
+import com.c4entertainment.moviehunter.data.repository.CatalogRepositoryImpl
+import com.c4entertainment.moviehunter.domain.repository.CatalogRepository
 import com.c4entertainment.moviehunter.data.repository.MovieRepositoryImpl
 import com.c4entertainment.moviehunter.data.repository.UserSettingsRepositoryImpl
 import com.c4entertainment.moviehunter.domain.repository.MovieRepository
@@ -17,6 +19,10 @@ abstract class  MovieRepositoryModule {
     @Binds
     @Singleton
     abstract fun bindMovieRepository(movieRepositoryImpl: MovieRepositoryImpl): MovieRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCatalogRepository(catalogRepositoryImpl: CatalogRepositoryImpl): CatalogRepository
 
     @Binds
     abstract fun bindsUserDataRepository(

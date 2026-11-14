@@ -7,15 +7,20 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.c4entertainment.moviehunter.data.mappers.toMovie
+import com.c4entertainment.moviehunter.domain.model.catalog.CatalogItem
+import com.c4entertainment.moviehunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.moviehunter.domain.model.movie.Movie
 import com.c4entertainment.moviehunter.domain.repository.AuthRepository
+import com.c4entertainment.moviehunter.domain.repository.CatalogRepository
 import com.c4entertainment.moviehunter.domain.repository.MovieRepository
 import com.c4entertainment.moviehunter.domain.repository.UserSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -26,10 +31,14 @@ import javax.inject.Inject
 class MovieViewModel @Inject constructor(
     private val repository: MovieRepository,
     private val userSettingsRepository: UserSettingsRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val catalogRepository: CatalogRepository,
 ) : ViewModel() {
 
     val TAG = "MovieViewModel"
+
+    /** The Kitsu ID Torrentio uses for an AniList anime, or null if it can't be found. */
+    suspend fun kitsuIdFor(aniListId: Long): String? = catalogRepository.kitsuIdForAniList(aniListId)
 
     val settingsUiState: StateFlow<SettingsUiState> =
         userSettingsRepository.userSettings
@@ -61,6 +70,16 @@ class MovieViewModel @Inject constructor(
     private val _searchedMovies = MutableStateFlow<PagingData<Movie>>(PagingData.empty())
     val searchedMovies = _searchedMovies
 
+    /** The non-TMDB section shown on Home, or null when showing movies/TV. */
+    private val _selectedSection = MutableStateFlow<CatalogSection?>(null)
+    val selectedSection: StateFlow<CatalogSection?> = _selectedSection.asStateFlow()
+
+    private val _catalogState = MutableStateFlow(CatalogUiState())
+    val catalogState: StateFlow<CatalogUiState> = _catalogState.asStateFlow()
+
+    private val catalogCache = mutableMapOf<CatalogSection, List<CatalogItem>>()
+    private var catalogJob: Job? = null
+
     val getSignedInUser get() = authRepository.getSignedInUser()
 
     fun onMovieEvent(event: MovieEvent) {
@@ -76,6 +95,8 @@ class MovieViewModel @Inject constructor(
             }
 
             is MovieEvent.OnMovieTVToggled -> {
+                catalogJob?.cancel()
+                _selectedSection.value = null
                 viewModelScope.launch {
                     userSettingsRepository.setMovieTV(event.movieTV)
                     getMovies(event.movieTV)
@@ -98,6 +119,27 @@ class MovieViewModel @Inject constructor(
             is MovieEvent.OnSearchInitiated -> {
                 viewModelScope.launch {
 //                    getMovies(userSettingsRepository.userSettings.first().sort, searchQuery.value)
+                }
+            }
+
+            is MovieEvent.OnCatalogSectionSelected -> {
+                _selectedSection.value = event.section
+                loadCatalog(event.section, forceRefresh = false)
+            }
+
+            MovieEvent.OnCatalogRefresh -> {
+                val section = _selectedSection.value ?: return
+                val query = _catalogState.value.query
+                if (query != null) searchCatalog(section, query) else loadCatalog(section, forceRefresh = true)
+            }
+
+            is MovieEvent.OnCatalogSearch -> {
+                val section = _selectedSection.value ?: return
+                val query = event.query.trim()
+                when {
+                    query.isEmpty() -> loadCatalog(section, forceRefresh = false)
+                    query == _catalogState.value.query && !event.immediate -> Unit
+                    else -> searchCatalog(section, query, debounce = !event.immediate)
                 }
             }
 
@@ -135,6 +177,48 @@ class MovieViewModel @Inject constructor(
         }
     }
 
+    private fun loadCatalog(section: CatalogSection, forceRefresh: Boolean) {
+        catalogJob?.cancel()
+        val cached = catalogCache[section].orEmpty()
+        _catalogState.value = CatalogUiState(items = cached, isLoading = forceRefresh || cached.isEmpty())
+        if (!forceRefresh && cached.isNotEmpty()) return
+
+        catalogJob = viewModelScope.launch {
+            catalogRepository.getItems(section)
+                .onSuccess { items ->
+                    catalogCache[section] = items
+                    _catalogState.value = CatalogUiState(items = items)
+                }
+                .onFailure { error ->
+                    _catalogState.value = CatalogUiState(
+                        items = cached,
+                        error = error.message ?: "Couldn't load ${section.label.lowercase()}",
+                    )
+                }
+        }
+    }
+
+    /** Searches as the user types: [debounce] waits for a pause so each keystroke isn't a request. */
+    private fun searchCatalog(section: CatalogSection, query: String, debounce: Boolean = false) {
+        catalogJob?.cancel()
+        // Keep showing the last results while the new ones load.
+        val previous = _catalogState.value.items
+        _catalogState.value = CatalogUiState(items = previous, isLoading = true, query = query)
+
+        catalogJob = viewModelScope.launch {
+            if (debounce) delay(CATALOG_SEARCH_DEBOUNCE_MS)
+            catalogRepository.search(section, query)
+                .onSuccess { items -> _catalogState.value = CatalogUiState(items = items, query = query) }
+                .onFailure { error ->
+                    _catalogState.value = CatalogUiState(
+                        items = previous,
+                        query = query,
+                        error = error.message ?: "Couldn't search ${section.label.lowercase()}",
+                    )
+                }
+        }
+    }
+
     private fun toggleView(isGrid: Boolean) {
         viewModelScope.launch {
             userSettingsRepository.useGrid(isGrid)
@@ -142,6 +226,16 @@ class MovieViewModel @Inject constructor(
     }
 
 }
+
+private const val CATALOG_SEARCH_DEBOUNCE_MS = 400L
+
+data class CatalogUiState(
+    val items: List<CatalogItem> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    /** The search these items answer, or null when showing what's trending. */
+    val query: String? = null,
+)
 
 data class UserEditableSettings(
     val movieTV: String,

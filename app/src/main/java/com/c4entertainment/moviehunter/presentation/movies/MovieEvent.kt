@@ -1,5 +1,7 @@
 package com.c4entertainment.moviehunter.presentation.movies
 
+import com.c4entertainment.moviehunter.domain.model.catalog.CatalogSection
+
 sealed class MovieEvent {
     data class OnSearchQueryChange(val query: String): MovieEvent()
 
@@ -10,4 +12,9 @@ sealed class MovieEvent {
 
     data class OnToggleView(val isGrid: Boolean): MovieEvent()
     object OnSearchInitiated: MovieEvent()
+
+    data class OnCatalogSectionSelected(val section: CatalogSection): MovieEvent()
+    object OnCatalogRefresh: MovieEvent()
+    /** Searches the selected catalog section; a blank query goes back to what's trending. */
+    data class OnCatalogSearch(val query: String, val immediate: Boolean = false): MovieEvent()
 }
