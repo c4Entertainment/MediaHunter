@@ -56,7 +56,7 @@ fun ArtistTorrentSearchSheet(
     val context = LocalContext.current
     // Every installed app gets its own button; if none is installed, one
     // footer row points at the first app's install page.
-    val apps = ExternalApps.forSection(CatalogSection.Artists)
+    val apps = ExternalApps.forSection(CatalogSection.Artists, telegramBot)
     val installed = apps.filter { ExternalApps.isInstalled(context, it) }
     val missing = apps.firstOrNull()?.takeIf { installed.isEmpty() }
     val downloadButton: @Composable (String) -> Unit = { query ->

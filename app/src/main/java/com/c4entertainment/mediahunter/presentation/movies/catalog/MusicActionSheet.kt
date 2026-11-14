@@ -73,7 +73,8 @@ fun MusicActionSheet(
                             onDismiss()
                         },
                     )
-                } else {
+                } else if (!app.needsBot) {
+                    // The bot row needs Telegram itself; its "Get Telegram" row covers that.
                     ListItem(
                         headlineContent = { Text(stringResource(R.string.action_get_app, app.name)) },
                         supportingContent = { Text(stringResource(R.string.action_get_app_summary)) },
@@ -91,7 +92,7 @@ fun MusicActionSheet(
 
 /** The icon for [app]'s action row: Send for chat apps, Download for downloaders. */
 fun ExternalApp.icon(): ImageVector =
-    if (id == "telegram") Icons.AutoMirrored.Filled.Send else Icons.Default.Download
+    if (id.startsWith("telegram")) Icons.AutoMirrored.Filled.Send else Icons.Default.Download
 
 /** Hands [query] to [app]; a Toast says so when it can't be opened. */
 fun Context.sendToApp(app: ExternalApp, query: String, telegramBot: String) {

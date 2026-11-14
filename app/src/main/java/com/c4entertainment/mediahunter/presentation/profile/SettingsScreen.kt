@@ -171,7 +171,7 @@ fun SettingsScreen(
 
             HorizontalDivider()
             SectionTitle(stringResource(R.string.settings_downloader_apps))
-            ExternalApps.all.forEach { app ->
+            ExternalApps.listed.forEach { app ->
                 val installed = ExternalApps.isInstalled(context, app)
                 ListItem(
                     headlineContent = { Text(app.name) },

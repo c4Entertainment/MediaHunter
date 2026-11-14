@@ -193,7 +193,7 @@ fun MovieScreen(
     if (musicItem != null && musicSection != null) {
         MusicActionSheet(
             item = musicItem,
-            apps = ExternalApps.forSection(musicSection),
+            apps = ExternalApps.forSection(musicSection, telegramBot),
             telegramBot = telegramBot,
             onSearchTorrents = {
                 musicSheetItem = null
