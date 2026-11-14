@@ -3,7 +3,6 @@
 agp = "9.4.1"
 kotlin = "2.4.20"
 ksp = "2.3.11"
-googleServices = "4.5.0"
 hilt = "2.60.1"
 
 # AndroidX
@@ -21,10 +20,6 @@ lifecycle = "2.11.0"
 navigationCompose = "2.10.2"
 paging = "3.5.0"
 room = "2.8.5"
-
-# Google / Firebase
-firebaseBom = "34.17.0"
-playServicesAuth = "21.6.0"
 gson = "2.14.0"
 desugarJdkLibs = "2.1.5"
 
@@ -85,10 +80,6 @@ hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", ve
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltAndroidx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltAndroidx" }
 
-# Firebase / Play services
-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-firebase-auth = { module = "com.google.firebase:firebase-auth" }
-play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 
@@ -121,4 +112,3 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

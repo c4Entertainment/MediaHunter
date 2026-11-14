@@ -11,7 +11,7 @@ This is a movie search app that allows users to search for movies and view the m
 * [Contributing](#contributing)
 
 ## APK
-[Download](https://github.com/laurentjuma/moviehunter/releases)
+[Download](https://github.com/c4Entertainment/MediaHunter/releases)
 
 ## Installation
 Clone the repo and open in Android Studio.
@@ -23,8 +23,6 @@ TMDB_API_KEY=09ad8ace66eec34302943272db0e8d2c
 ```
 
 The following link contains additional API keys for TMDB. [Click to view API Keys](https://github.com/rickylawson/freekeys/blob/master/index.js)
-
-You also need a google-services.json file from Firebase. Click [Google Services](https://firebase.google.com/docs/android/setup)  for more information.
 
 
 I used `JAVA_VERSION=17`. You may need to change  to this version of Java in your Android Studio settings.

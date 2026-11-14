@@ -26,7 +26,7 @@
 # This fixes: Caused by: androidx.fragment.app.Fragment$InstantiationException: Unable to instantiate fragment androidx.navigation.fragment.NavHostFragment: make sure class name exists
 #-------------------------------------------------
 #-keepnames class androidx.navigation.fragment.NavHostFragment
--keepnames class com.c4entertainment.moviehunter.domain.model.** {public private protected *; }
+-keepnames class com.c4entertainment.mediahunter.domain.model.** {public private protected *; }
 -keepnames class * extends android.os.Parcelable
 
 # These options are the minimal options for a functioning application
@@ -58,7 +58,7 @@
 ## -------------End: Retrofit2 ---
 ##---- keep your interface names {*;}
 
--keep interface com.c4entertainment.moviehunter.** {*;}
+-keep interface com.c4entertainment.mediahunter.** {*;}
 
 # removes such information by default, so configure it to keep all of it.
 -keepattributes Signature
@@ -110,13 +110,13 @@
     @com.squareup.moshi.ToJson <methods>;
 }
 
--keepnames @kotlin.Metadata class com.c4entertainment.moviehunter.domain.model.** { *; }
--keep class com.c4entertainment.moviehunter.domain.model.** { *; }
--keepclassmembers class com.c4entertainment.moviehunter.domain.model.** { *; }
+-keepnames @kotlin.Metadata class com.c4entertainment.mediahunter.domain.model.** { *; }
+-keep class com.c4entertainment.mediahunter.domain.model.** { *; }
+-keepclassmembers class com.c4entertainment.mediahunter.domain.model.** { *; }
 
--keepnames @kotlin.Metadata class com.c4entertainment.moviehunter.data.** { *; }
--keep class com.c4entertainment.moviehunter.data.** { *; }
--keepclassmembers class com.c4entertainment.moviehunter.data.** { *; }
+-keepnames @kotlin.Metadata class com.c4entertainment.mediahunter.data.** { *; }
+-keep class com.c4entertainment.mediahunter.data.** { *; }
+-keepclassmembers class com.c4entertainment.mediahunter.data.** { *; }
 
 # Retrofit does reflection on generic parameters. InnerClasses is required to use Signature and
 # EnclosingMethod is required to use InnerClasses.

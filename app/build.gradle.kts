@@ -5,11 +5,10 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.google.services)
 }
 
 android {
-    namespace = "com.c4entertainment.moviehunter"
+    namespace = "com.c4entertainment.mediahunter"
     compileSdk = 37
 
     buildFeatures {
@@ -17,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.c4entertainment.moviehunter"
+        applicationId = "com.c4entertainment.mediahunter"
         minSdk = 25
         targetSdk = 37
         versionCode = 1
@@ -34,7 +33,6 @@ android {
 
         buildConfigField("String", "TMDB_API_KEY", "\"${properties.getProperty("TMDB_API_KEY")}\"")
         buildConfigField("String", "RAWG_API_KEY", "\"${properties.getProperty("RAWG_API_KEY", "")}\"")
-        buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"${properties.getProperty("GOOGLE_SERVER_CLIENT_ID")}\"")
 
     }
 
@@ -125,11 +123,6 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.paging)
-
-    // Firebase Auth
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
-    implementation(libs.play.services.auth)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

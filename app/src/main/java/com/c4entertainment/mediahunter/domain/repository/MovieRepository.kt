@@ -1,0 +1,34 @@
+package com.c4entertainment.mediahunter.domain.repository
+
+import androidx.paging.PagingData
+import com.c4entertainment.mediahunter.data.cache.entity.movie.MovieEntity
+import com.c4entertainment.mediahunter.data.cache.entity.search.MovieSearchEntity
+import com.c4entertainment.mediahunter.domain.model.movie_details.MovieDetails
+import com.c4entertainment.mediahunter.domain.model.movie_details.TvSeason
+import com.c4entertainment.mediahunter.domain.model.movie_details.TvSeasonsInfo
+import com.c4entertainment.mediahunter.domain.model.movie.Movie
+import com.c4entertainment.mediahunter.util.Resource
+import kotlinx.coroutines.flow.Flow
+
+interface MovieRepository {
+
+    fun getMovies(sort: Boolean = false, type: String): Flow<PagingData<MovieEntity>>
+
+    fun searchMovies(sort: Boolean = false, type:String, query: String): Flow<PagingData<MovieSearchEntity>>
+
+    suspend fun getMovie(
+        id: Int,
+        type: String
+    ): Flow<Resource<Movie>>
+
+    suspend fun getMovieDetails(
+        fetchFromNetwork: Boolean,
+        id: Int,
+        type: String
+    ): Flow<Resource<MovieDetails>>
+
+    suspend fun getTvSeasons(id: Int): Resource<TvSeasonsInfo>
+
+suspend fun clearSearch(): Flow<Resource<Boolean>>
+
+}

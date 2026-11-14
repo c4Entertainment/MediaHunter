@@ -3,6 +3,6 @@
     <style name="Theme.AppCompat.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#000000</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/baseline_movie_filter_24</item>
-        <item name="postSplashScreenTheme">@style/Theme.MovieGuru</item>
+        <item name="postSplashScreenTheme">@style/Theme.MediaHunter</item>
     </style>
 </resources>
