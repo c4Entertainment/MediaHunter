@@ -34,4 +34,6 @@ data class UserSettings(
     val musicRegion: String = "Worldwide",
     /** [com.c4entertainment.mediahunter.domain.model.catalog.MusicGenre] name, or null for all genres. */
     val musicGenre: String? = null,
+    /** Telegram username (no "@") of the music bot searches are sent to; empty means the chat picker. */
+    val telegramBot: String = "",
 )

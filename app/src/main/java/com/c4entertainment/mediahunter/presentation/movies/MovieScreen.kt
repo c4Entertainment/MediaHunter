@@ -63,6 +63,7 @@ fun MovieScreen(
     val selectedSection by viewModel.selectedSection.collectAsStateWithLifecycle()
     val catalogState by viewModel.catalogState.collectAsStateWithLifecycle()
     val musicChart by viewModel.musicChart.collectAsStateWithLifecycle()
+    val telegramBot by viewModel.telegramBot.collectAsStateWithLifecycle()
 
     MovieScreen(
         movies = movies,
@@ -75,6 +76,7 @@ fun MovieScreen(
         catalogState = catalogState,
         resolveKitsuId = viewModel::kitsuIdFor,
         musicChart = musicChart,
+        telegramBot = telegramBot,
         loadArtistAlbums = viewModel::artistAlbums,
     )
 
@@ -93,6 +95,7 @@ fun MovieScreen(
     catalogState: CatalogUiState,
     resolveKitsuId: suspend (aniListId: Long) -> String?,
     musicChart: MusicChart,
+    telegramBot: String,
     loadArtistAlbums: suspend (ArtistRef) -> Result<List<ArtistAlbum>>,
 ) {
 
@@ -191,6 +194,7 @@ fun MovieScreen(
         MusicActionSheet(
             item = musicItem,
             apps = ExternalApps.forSection(musicSection),
+            telegramBot = telegramBot,
             onSearchTorrents = {
                 musicSheetItem = null
                 context.startActivity(
@@ -236,6 +240,7 @@ fun MovieScreen(
         ArtistTorrentSearchSheet(
             artist = sheetArtist,
             imageUrl = artistSheetItem?.imageUrl,
+            telegramBot = telegramBot,
             loadAlbums = { loadArtistAlbums(sheetArtist) },
             onSearch = { query ->
                 artistSheetItem = null

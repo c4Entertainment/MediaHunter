@@ -2,12 +2,12 @@ package com.c4entertainment.mediahunter.presentation.movies.catalog
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +40,7 @@ import com.c4entertainment.mediahunter.domain.model.catalog.ArtistRef
 fun ArtistTorrentSearchSheet(
     artist: ArtistRef,
     imageUrl: String?,
+    telegramBot: String,
     loadAlbums: suspend () -> Result<List<ArtistAlbum>>,
     onSearch: (query: String) -> Unit,
     onDismiss: () -> Unit,
@@ -53,18 +54,20 @@ fun ArtistTorrentSearchSheet(
     }
 
     val context = LocalContext.current
-    // The first installed downloader gets the download buttons; if none is
-    // installed, one footer row points at the first app's install page.
+    // Every installed app gets its own button; if none is installed, one
+    // footer row points at the first app's install page.
     val apps = ExternalApps.forSection(CatalogSection.Artists)
-    val downloader = apps.firstOrNull { ExternalApps.isInstalled(context, it) }
-    val missing = apps.firstOrNull()?.takeIf { downloader == null }
+    val installed = apps.filter { ExternalApps.isInstalled(context, it) }
+    val missing = apps.firstOrNull()?.takeIf { installed.isEmpty() }
     val downloadButton: @Composable (String) -> Unit = { query ->
-        if (downloader != null) {
-            IconButton(onClick = {
-                context.sendToApp(downloader, query)
-                onDismiss()
-            }) {
-                Icon(Icons.Default.Download, contentDescription = "Download with ${downloader.name}")
+        Row {
+            installed.forEach { app ->
+                IconButton(onClick = {
+                    context.sendToApp(app, query, telegramBot)
+                    onDismiss()
+                }) {
+                    Icon(app.icon(), contentDescription = app.label(context, telegramBot))
+                }
             }
         }
     }

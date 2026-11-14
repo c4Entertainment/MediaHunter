@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -44,6 +45,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -71,6 +80,7 @@ fun SettingsScreen(
     val settings = (uiState as? SettingsUiState.Success)?.settings
     val lockOn = settings?.useFingerPrint == true
     val canLock = remember { AppLock.canLock(context) }
+    var botDialogOpen by rememberSaveable { mutableStateOf(false) }
 
     // Turning the lock on needs one successful unlock, so nobody sets a lock
     // they can't open.
@@ -172,7 +182,8 @@ fun SettingsScreen(
                     trailingContent = {
                         TextButton(onClick = {
                             if (installed) {
-                                context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                ExternalApps.installedPackage(context, app)
+                                    ?.let { context.packageManager.getLaunchIntentForPackage(it) }
                                     ?.let { runCatching { context.startActivity(it) } }
                             } else {
                                 context.openInstallPage(app)
@@ -181,6 +192,27 @@ fun SettingsScreen(
                             Text(stringResource(if (installed) R.string.downloader_open else R.string.downloader_get))
                         }
                     },
+                )
+                if (app.id == "telegram") {
+                    val bot = settings?.telegramBot.orEmpty()
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.telegram_music_bot)) },
+                        supportingContent = {
+                            Text(
+                                if (bot.isEmpty()) stringResource(R.string.telegram_music_bot_unset)
+                                else stringResource(R.string.telegram_music_bot_set, bot)
+                            )
+                        },
+                        leadingContent = { Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null) },
+                        modifier = Modifier.clickable { botDialogOpen = true },
+                    )
+                }
+            }
+            if (botDialogOpen) {
+                TelegramBotDialog(
+                    current = settings?.telegramBot.orEmpty(),
+                    onSave = { viewModel.updateTelegramBot(it); botDialogOpen = false },
+                    onDismiss = { botDialogOpen = false },
                 )
             }
 
@@ -286,4 +318,36 @@ private fun SectionTitle(text: String) {
 
 private fun android.content.Context.openUrl(url: String) {
     runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+}
+
+/** Asks for the Telegram music bot; the ViewModel normalises whatever is typed or pasted. */
+@Composable
+private fun TelegramBotDialog(
+    current: String,
+    onSave: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var text by rememberSaveable { mutableStateOf(if (current.isEmpty()) "" else "@$current") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.telegram_music_bot)) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                singleLine = true,
+                placeholder = { Text(stringResource(R.string.telegram_music_bot_hint)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(text) }) { Text(stringResource(R.string.telegram_music_bot_save)) }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = { onSave("") }) { Text(stringResource(R.string.telegram_music_bot_clear)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.telegram_music_bot_cancel)) }
+            }
+        },
+    )
 }

@@ -68,5 +68,9 @@ class UserSettingsRepositoryImpl @Inject constructor(
         preferencesDataSource.setMusicChart(region, genre)
     }
 
+    override suspend fun setTelegramBot(bot: String) {
+        preferencesDataSource.setTelegramBot(bot)
+    }
+
 
 }

@@ -59,6 +59,16 @@
     <string name="action_search_torrents">Search torrents</string>
     <string name="action_download_with">Download with %1$s</string>
     <string name="action_get_app">Get %1$s</string>
-    <string name="action_get_app_summary">Not installed — opens GitHub</string>
+    <string name="action_get_app_summary">Not installed — opens its download page</string>
     <string name="action_get_app_to_download">Get %1$s to download directly</string>
+    <string name="action_send_to_telegram">Send to Telegram</string>
+    <string name="action_send_to_bot">Send to @%1$s</string>
+    <string name="telegram_search_copied">Search copied — paste it if the chat is empty</string>
+    <string name="telegram_music_bot">Music bot</string>
+    <string name="telegram_music_bot_set">@%1$s</string>
+    <string name="telegram_music_bot_unset">Not set — share opens the chat picker</string>
+    <string name="telegram_music_bot_hint">@musicbot</string>
+    <string name="telegram_music_bot_save">Save</string>
+    <string name="telegram_music_bot_clear">Clear</string>
+    <string name="telegram_music_bot_cancel">Cancel</string>
 </resources>

@@ -83,6 +83,11 @@ class MovieViewModel @Inject constructor(
     private val catalogCache = mutableMapOf<Pair<CatalogSection, MusicChart?>, List<CatalogItem>>()
     private var catalogJob: Job? = null
 
+    /** The Telegram music bot username, empty when unset; the share sheets label themselves with it. */
+    val telegramBot: StateFlow<String> = userSettingsRepository.userSettings
+        .map { it.telegramBot }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
     private val _musicChart = MutableStateFlow(MusicChart())
     val musicChart: StateFlow<MusicChart> = _musicChart.asStateFlow()
 

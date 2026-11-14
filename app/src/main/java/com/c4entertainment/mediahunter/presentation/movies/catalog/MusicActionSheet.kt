@@ -26,6 +26,9 @@ import com.c4entertainment.mediahunter.R
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
 import com.c4entertainment.mediahunter.domain.model.external.ExternalApp
 import com.c4entertainment.mediahunter.domain.model.external.ExternalApps
+import com.c4entertainment.mediahunter.domain.model.external.HandOff
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
  * Asks what to do with an album or song: search torrents, or hand it to each
@@ -36,6 +39,7 @@ import com.c4entertainment.mediahunter.domain.model.external.ExternalApps
 fun MusicActionSheet(
     item: CatalogItem,
     apps: List<ExternalApp>,
+    telegramBot: String,
     onSearchTorrents: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -62,10 +66,10 @@ fun MusicActionSheet(
             apps.forEach { app ->
                 if (ExternalApps.isInstalled(context, app)) {
                     ListItem(
-                        headlineContent = { Text(stringResource(R.string.action_download_with, app.name)) },
-                        leadingContent = { Icon(Icons.Default.Download, contentDescription = null) },
+                        headlineContent = { Text(app.label(context, telegramBot)) },
+                        leadingContent = { Icon(app.icon(), contentDescription = null) },
                         modifier = Modifier.clickable {
-                            context.sendToApp(app, item.searchTerms)
+                            context.sendToApp(app, item.searchTerms, telegramBot)
                             onDismiss()
                         },
                     )
@@ -85,9 +89,18 @@ fun MusicActionSheet(
     }
 }
 
+/** The icon for [app]'s action row: Send for chat apps, Download for downloaders. */
+fun ExternalApp.icon(): ImageVector =
+    if (id == "telegram") Icons.AutoMirrored.Filled.Send else Icons.Default.Download
+
 /** Hands [query] to [app]; a Toast says so when it can't be opened. */
-fun Context.sendToApp(app: ExternalApp, query: String) {
-    runCatching { startActivity(app.intentFor(query).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+fun Context.sendToApp(app: ExternalApp, query: String, telegramBot: String) {
+    val packageName = ExternalApps.installedPackage(this, app) ?: return
+    val handOff = HandOff(packageName, telegramBot.ifEmpty { null })
+    runCatching {
+        app.beforeLaunch?.invoke(this, query, handOff)
+        startActivity(app.intentFor(query, handOff).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
         .onFailure {
             Toast.makeText(this, getString(R.string.downloader_failed, app.name), Toast.LENGTH_SHORT).show()
         }

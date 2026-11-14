@@ -7,6 +7,11 @@
     <!-- Package visibility for ExternalApps (domain/model/external): one line per registered app. -->
     <queries>
         <package android:name="com.deniscerri.ytdl" />
+        <package android:name="org.telegram.messenger" />
+        <package android:name="org.telegram.messenger.web" />
+        <package android:name="org.thunderdog.challegram" />
+        <package android:name="org.telegram.plus" />
+        <package android:name="tw.nekomimi.nekogram" />
     </queries>
 
     <application

@@ -46,6 +46,7 @@ constructor(app: MediaHunterApp) {
             movieTVBackup = preferences[MOVIE_TV_BACKUP_FILTER] ?: MovieTVFilterConfig.MOVIE,
             musicRegion = preferences[MUSIC_REGION] ?: "Worldwide",
             musicGenre = preferences[MUSIC_GENRE],
+            telegramBot = preferences[TELEGRAM_BOT] ?: "",
         )
     }
 
@@ -130,6 +131,14 @@ constructor(app: MediaHunterApp) {
         }
     }
 
+    fun setTelegramBot(bot: String) {
+        scope.launch {
+            datastore.edit { preferences ->
+                if (bot.isEmpty()) preferences.remove(TELEGRAM_BOT) else preferences[TELEGRAM_BOT] = bot
+            }
+        }
+    }
+
     companion object {
         const val SETTINGS_DATASTORE_NAME = "media_hunter_settings"
 
@@ -145,5 +154,6 @@ constructor(app: MediaHunterApp) {
 
         private val MUSIC_REGION = stringPreferencesKey("music_region_key")
         private val MUSIC_GENRE = stringPreferencesKey("music_genre_key")
+        private val TELEGRAM_BOT = stringPreferencesKey("telegram_bot_key")
     }
 }

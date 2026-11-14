@@ -41,6 +41,7 @@ class SettingsViewModel @Inject constructor(
                         useDynamicColor = userData.useDynamicColor,
                         pureBlack = userData.pureBlack,
                         darkThemeConfig = userData.darkThemeConfig,
+                        telegramBot = userData.telegramBot,
                     ),
                 )
             }
@@ -75,6 +76,13 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /** Saves the bot after [normalizeTelegramBot]; blank input clears it. */
+    fun updateTelegramBot(input: String) {
+        viewModelScope.launch {
+            userDataRepository.setTelegramBot(normalizeTelegramBot(input))
+        }
+    }
+
     fun updateDynamicColorPreference(useDynamicColor: Boolean) {
         viewModelScope.launch {
             userDataRepository.setDynamicColorPreference(useDynamicColor)
@@ -92,9 +100,28 @@ data class UserEditableSettings(
     val useDynamicColor: Boolean,
     val pureBlack: Boolean,
     val darkThemeConfig: String,
+    val telegramBot: String = "",
 )
 
 sealed interface SettingsUiState {
     object Loading : SettingsUiState
     data class Success(val settings: UserEditableSettings) : SettingsUiState
 }
+
+/**
+ * Reduces whatever the user pasted (@name, t.me/name, a tg:// link...) to the bare username:
+ * drops the link prefixes and anything after "?" or "/", then keeps only [A-Za-z0-9_].
+ */
+fun normalizeTelegramBot(input: String): String {
+    var s = input.trim()
+    for (prefix in listOf("https://t.me/", "http://t.me/", "t.me/", "tg://resolve?domain=")) {
+        if (s.startsWith(prefix, ignoreCase = true)) {
+            s = s.substring(prefix.length)
+            break
+        }
+    }
+    s = s.removePrefix("@").substringBefore('?').substringBefore('/')
+    return s.filter { it.isAsciiLetterOrDigit() || it == '_' }
+}
+
+private fun Char.isAsciiLetterOrDigit() = this in 'a'..'z' || this in 'A'..'Z' || this in '0'..'9'
