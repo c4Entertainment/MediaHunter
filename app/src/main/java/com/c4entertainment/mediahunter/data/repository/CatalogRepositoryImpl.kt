@@ -115,7 +115,7 @@ private fun DeezerAlbumDto.toCatalogItem(): CatalogItem {
         title = title,
         subtitle = artist,
         imageUrl = coverBig,
-        searchTerms = listOfNotNull(artist, title).joinToString(" "),
+        searchTerms = listOfNotNull(artist, title.forTorrentSearch()).joinToString(" "),
     )
 }
 
@@ -128,7 +128,9 @@ private fun DeezerTrackDto.toCatalogItem(): CatalogItem {
             .joinToString(" · ")
             .ifEmpty { null },
         imageUrl = album?.coverBig,
-        searchTerms = listOfNotNull(artist, title).joinToString(" "),
+        // Songs are rarely shared alone: search for the album they're on.
+        // A single's album has the song's name, so that still finds it.
+        searchTerms = listOfNotNull(artist, (album?.title ?: title).forTorrentSearch()).joinToString(" "),
     )
 }
 
@@ -170,4 +172,17 @@ private fun AniListMediaDto.toCatalogItem(): CatalogItem? {
             availableEpisodes = nextAiringEpisode?.episode?.minus(1) ?: episodes,
         ),
     )
+}
+
+/**
+ * Drops what store listings add but uploads rarely carry, since torrent
+ * searches need every word to match: "(P3)", "[10-Year Edition]",
+ * "(Deluxe)", "(feat. X)", "(Remastered 2016)", "- Single", "- EP".
+ * "PARTYNEXTDOOR 3 (P3) [10-YEAR EDITION]" becomes "PARTYNEXTDOOR 3".
+ */
+private fun String.forTorrentSearch(): String {
+    val cleaned = replace(Regex("""\s*[(\[][^)\]]*[)\]]"""), "")
+        .replace(Regex("""(?i)\s+-\s+(single|ep)$"""), "")
+        .trim()
+    return cleaned.ifEmpty { this }
 }

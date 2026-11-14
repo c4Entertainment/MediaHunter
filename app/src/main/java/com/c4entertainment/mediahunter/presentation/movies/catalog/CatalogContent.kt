@@ -62,7 +62,9 @@ import com.prajwalch.torrentsearch.domain.model.Category
  */
 val CatalogSection.torrentCategory: Category
     get() = when (this) {
-        CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Books -> Category.All
+        // Music keeps Knaben to music and skips movie/anime-only providers.
+        CatalogSection.Albums, CatalogSection.Songs -> Category.Music
+        CatalogSection.Books -> Category.All
         CatalogSection.Games -> Category.Games
         CatalogSection.Anime -> Category.Anime
     }

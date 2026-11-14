@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -134,6 +135,9 @@ class MainActivity : FragmentActivity() {
 
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
+                        // Each screen's own Scaffold/top bar handles the system bars;
+                        // insetting here too doubled the status bar gap.
+                        contentWindowInsets = WindowInsets(0, 0, 0, 0),
                     ) {
 
                         NavSetUp(
