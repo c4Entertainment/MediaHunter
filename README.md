@@ -32,7 +32,7 @@ APKs are on the [Releases](https://github.com/c4Entertainment/MediaHunter/releas
 git clone --recurse-submodules https://github.com/c4Entertainment/MediaHunter.git
 ```
 
-If you already cloned without submodules, run `git submodule update --init`. TorrentSearch lives in `external/TorrentSearch`, on the `movie-hunter` branch of the fork, and is built from source as a composite build.
+If you already cloned without submodules, run `git submodule update --init`. TorrentSearch lives in `external/TorrentSearch`, on the `media-hunter` branch of the fork, and is built from source as a composite build.
 
 Add your keys to `local.properties` in the project root:
 
