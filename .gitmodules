@@ -1,4 +1,4 @@
 [submodule "external/TorrentSearch"]
 	path = external/TorrentSearch
-	url = https://github.com/m3ugoat/TorrentSearch.git
+	url = https://github.com/c4Entertainment/TorrentSearch.git
 	branch = movie-hunter
