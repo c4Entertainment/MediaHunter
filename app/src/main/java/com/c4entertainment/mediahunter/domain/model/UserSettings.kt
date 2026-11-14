@@ -22,6 +22,8 @@ package com.c4entertainment.mediahunter.domain.model
 data class UserSettings(
     val darkThemeConfig: String,
     val useDynamicColor: Boolean,
+    /** Black instead of dark grey backgrounds in dark theme (AMOLED). */
+    val pureBlack: Boolean,
     val useGrid: Boolean,
     val useFingerPrint: Boolean,
     val sort: Boolean,

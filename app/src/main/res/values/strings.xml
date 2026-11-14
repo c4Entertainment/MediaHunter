@@ -5,6 +5,7 @@
     <string name="dismiss_dialog_button_text">Ok</string>
     <string name="settings_title">Settings</string>
     <string name="settings_filters">Filters</string>
+    <string name="search_torrents_label">Search torrents</string>
     <string name="settings_security">Security</string>
     <string name="app_lock">App lock</string>
     <string name="app_lock_summary">Ask for fingerprint or screen lock when opening the app</string>
@@ -14,6 +15,17 @@
     <string name="app_unlock">Unlock</string>
     <string name="app_unlock_prompt_title">Unlock Media Hunter</string>
     <string name="app_unlock_prompt_subtitle">Use your fingerprint or screen lock</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="theme">Theme</string>
+    <string name="theme_follow_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="dynamic_color">Dynamic colour</string>
+    <string name="dynamic_color_summary">Colours based on your wallpaper</string>
+    <string name="pure_black">Pure black</string>
+    <string name="pure_black_summary">Black backgrounds in dark theme, for AMOLED screens</string>
+    <string name="app_language">Language</string>
+    <string name="app_language_summary">App language, set in Android settings</string>
     <string name="settings_torrent_search">Torrent search</string>
     <string name="torrent_search_settings">Torrent search settings</string>
     <string name="torrent_search_settings_summary">Providers, sorting, NSFW, history and more</string>

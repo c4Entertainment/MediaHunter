@@ -120,7 +120,8 @@ class MainActivity : FragmentActivity() {
 
             MediaHunterTheme(
                 darkTheme = darkTheme,
-                dynamicColor = useDynamicColor
+                dynamicColor = useDynamicColor,
+                pureBlack = (uiState as? MainActivityUiState.Success)?.userSettings?.pureBlack == true,
             ) {
                 // A surface container using the 'background' color from the theme
                 Surface(

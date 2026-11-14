@@ -37,6 +37,7 @@ constructor(app: MediaHunterApp) {
         UserSettings(
             useGrid = preferences[USE_GRID] ?: true,
             useDynamicColor = preferences[USE_DYNAMIC_COLOR] ?: true,
+            pureBlack = preferences[PURE_BLACK] ?: false,
             useFingerPrint = preferences[USE_FINGERPRINT] ?: false,
             darkThemeConfig  = preferences[DATA_THEME_CONFIG] ?: DarkThemeConfig.FOLLOW_SYSTEM,
             sort = preferences[SORT] ?: false,
@@ -86,6 +87,14 @@ constructor(app: MediaHunterApp) {
         }
     }
 
+    fun setPureBlack(pureBlack: Boolean) {
+        scope.launch {
+            datastore.edit { preferences ->
+                preferences[PURE_BLACK] = pureBlack
+            }
+        }
+    }
+
     fun setDataThemeConfig(darkThemeConfig: String) {
         scope.launch {
             datastore.edit { preferences ->
@@ -115,6 +124,7 @@ constructor(app: MediaHunterApp) {
 
         private val USE_GRID = booleanPreferencesKey("use_grid_key")
         private val USE_DYNAMIC_COLOR = booleanPreferencesKey("use_dynamic_color_key")
+        private val PURE_BLACK = booleanPreferencesKey("pure_black_key")
         private val DATA_THEME_CONFIG = stringPreferencesKey("data_theme_config_key")
         private val USE_FINGERPRINT = booleanPreferencesKey("use_fingerprint_key")
         private val SORT = booleanPreferencesKey("sort_key")

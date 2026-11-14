@@ -14,6 +14,10 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    // Lets Android's per-app language page list the app's languages.
+    androidResources {
+        generateLocaleConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.c4entertainment.mediahunter"

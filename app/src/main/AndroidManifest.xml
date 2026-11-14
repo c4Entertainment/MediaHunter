@@ -26,6 +26,34 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!--
+            Share text, or select it and pick "Media Hunter", to search torrents
+            for it. TorrentSearch's settings switch these on and off, so the
+            names must match its standalone app's (.SendAlias, .ProcessTextAlias).
+        -->
+        <activity-alias
+            android:name=".SendAlias"
+            android:exported="true"
+            android:label="@string/search_torrents_label"
+            android:targetActivity="com.prajwalch.torrentsearch.ui.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".ProcessTextAlias"
+            android:exported="true"
+            android:label="@string/search_torrents_label"
+            android:targetActivity="com.prajwalch.torrentsearch.ui.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
         <activity
             android:name=".lock.LockActivity"
             android:excludeFromRecents="true"

@@ -20,6 +20,9 @@ interface UserSettingsRepository {
      */
     suspend fun setDynamicColorPreference(useDynamicColor: Boolean)
 
+    /** Black backgrounds in dark theme. */
+    suspend fun setPureBlack(pureBlack: Boolean)
+
     /**
      * Sets whether user should view list or grid
      */

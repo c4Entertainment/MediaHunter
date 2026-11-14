@@ -36,6 +36,10 @@ class UserSettingsRepositoryImpl @Inject constructor(
         preferencesDataSource.toggleUseDynamicColor(useDynamicColor)
     }
 
+    override suspend fun setPureBlack(pureBlack: Boolean) {
+        preferencesDataSource.setPureBlack(pureBlack)
+    }
+
     override suspend fun useGrid(useGrid: Boolean) {
         preferencesDataSource.toggleUseGrid(useGrid)
     }

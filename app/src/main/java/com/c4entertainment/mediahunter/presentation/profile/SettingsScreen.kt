@@ -3,6 +3,8 @@ package com.c4entertainment.mediahunter.presentation.profile
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -16,6 +18,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Contrast
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +31,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -40,6 +49,8 @@ import com.c4entertainment.mediahunter.BuildConfig
 import com.c4entertainment.mediahunter.R
 import com.c4entertainment.mediahunter.lock.AppLock
 import com.c4entertainment.mediahunter.lock.LockActivity
+import com.c4entertainment.mediahunter.ui.theme.supportsDynamicTheming
+import com.c4entertainment.mediahunter.util.DarkThemeConfig
 import com.prajwalch.torrentsearch.TorrentSearch
 
 private const val SOURCE_URL = "https://github.com/c4Entertainment/MediaHunter"
@@ -53,7 +64,8 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
-    val lockOn = (uiState as? SettingsUiState.Success)?.settings?.useFingerPrint == true
+    val settings = (uiState as? SettingsUiState.Success)?.settings
+    val lockOn = settings?.useFingerPrint == true
     val canLock = remember { AppLock.canLock(context) }
 
     // Turning the lock on needs one successful unlock, so nobody sets a lock
@@ -112,6 +124,38 @@ fun SettingsScreen(
             )
 
             HorizontalDivider()
+            SectionTitle(stringResource(R.string.settings_appearance))
+            if (settings != null) {
+                AppearanceSettings(
+                    settings = settings,
+                    onDarkThemeChange = viewModel::updateDarkThemeConfig,
+                    onDynamicColorChange = viewModel::updateDynamicColorPreference,
+                    onPureBlackChange = viewModel::updatePureBlack,
+                )
+            }
+
+            // Per-app language is Android 13+, and applies to the whole app,
+            // TorrentSearch's screens included.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.app_language)) },
+                    supportingContent = { Text(stringResource(R.string.app_language_summary)) },
+                    leadingContent = { Icon(Icons.Default.Language, contentDescription = null) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null) },
+                    modifier = Modifier.clickable {
+                        runCatching {
+                            context.startActivity(
+                                Intent(
+                                    Settings.ACTION_APP_LOCALE_SETTINGS,
+                                    Uri.fromParts("package", context.packageName, null),
+                                )
+                            )
+                        }
+                    },
+                )
+            }
+
+            HorizontalDivider()
             SectionTitle(stringResource(R.string.settings_torrent_search))
             ListItem(
                 headlineContent = { Text(stringResource(R.string.torrent_search_settings)) },
@@ -144,6 +188,61 @@ fun SettingsScreen(
             )
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AppearanceSettings(
+    settings: UserEditableSettings,
+    onDarkThemeChange: (String) -> Unit,
+    onDynamicColorChange: (Boolean) -> Unit,
+    onPureBlackChange: (Boolean) -> Unit,
+) {
+    val themes = listOf(
+        DarkThemeConfig.FOLLOW_SYSTEM to R.string.theme_follow_system,
+        DarkThemeConfig.LIGHT to R.string.theme_light,
+        DarkThemeConfig.DARK to R.string.theme_dark,
+    )
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.theme)) },
+        leadingContent = { Icon(Icons.Default.DarkMode, contentDescription = null) },
+        supportingContent = {
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.padding(top = 8.dp)) {
+                themes.forEachIndexed { index, (value, label) ->
+                    SegmentedButton(
+                        selected = settings.darkThemeConfig == value,
+                        onClick = { onDarkThemeChange(value) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = themes.size),
+                    ) {
+                        Text(stringResource(label), maxLines = 1)
+                    }
+                }
+            }
+        },
+    )
+    if (supportsDynamicTheming()) {
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.dynamic_color)) },
+            supportingContent = { Text(stringResource(R.string.dynamic_color_summary)) },
+            leadingContent = { Icon(Icons.Default.Palette, contentDescription = null) },
+            trailingContent = {
+                Switch(checked = settings.useDynamicColor, onCheckedChange = onDynamicColorChange)
+            },
+        )
+    }
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.pure_black)) },
+        supportingContent = { Text(stringResource(R.string.pure_black_summary)) },
+        leadingContent = { Icon(Icons.Default.Contrast, contentDescription = null) },
+        trailingContent = {
+            Switch(
+                checked = settings.pureBlack,
+                // Only meaningful when dark theme can be on.
+                enabled = settings.darkThemeConfig != DarkThemeConfig.LIGHT,
+                onCheckedChange = onPureBlackChange,
+            )
+        },
+    )
 }
 
 @Composable

@@ -39,6 +39,7 @@ class SettingsViewModel @Inject constructor(
                         useGrid  = userData.useGrid,
                         useFingerPrint = userData.useFingerPrint,
                         useDynamicColor = userData.useDynamicColor,
+                        pureBlack = userData.pureBlack,
                         darkThemeConfig = userData.darkThemeConfig,
                     ),
                 )
@@ -68,6 +69,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun updatePureBlack(pureBlack: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setPureBlack(pureBlack)
+        }
+    }
+
     fun updateDynamicColorPreference(useDynamicColor: Boolean) {
         viewModelScope.launch {
             userDataRepository.setDynamicColorPreference(useDynamicColor)
@@ -83,6 +90,7 @@ data class UserEditableSettings(
     val useGrid: Boolean,
     val useFingerPrint: Boolean,
     val useDynamicColor: Boolean,
+    val pureBlack: Boolean,
     val darkThemeConfig: String,
 )
 
