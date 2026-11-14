@@ -15,7 +15,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Movie Hunter"
+rootProject.name = "Media Hunter"
 include(":app")
 
 // TorrentSearch fork (git submodule), built from source as a composite build so
