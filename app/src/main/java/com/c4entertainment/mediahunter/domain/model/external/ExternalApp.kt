@@ -92,7 +92,7 @@ object ExternalApps {
      */
     private val TELEGRAM_BOT = ExternalApp(
         id = "telegram_bot",
-        name = "Telegram bot",
+        name = "Telegram Music Bot",
         packageNames = TELEGRAM_PACKAGES,
         installUrl = "https://telegram.org/apps",
         sections = setOf(CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Artists),

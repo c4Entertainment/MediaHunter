@@ -64,7 +64,7 @@
     <string name="action_send_to_telegram">Send to Telegram</string>
     <string name="action_send_to_bot">Send to @%1$s</string>
     <string name="telegram_search_copied">Search copied — paste it if the chat is empty</string>
-    <string name="telegram_music_bot">Music bot</string>
+    <string name="telegram_music_bot">Telegram Music Bot</string>
     <string name="telegram_music_bot_set">@%1$s</string>
     <string name="telegram_music_bot_unset">Not set — share opens the chat picker</string>
     <string name="telegram_music_bot_hint">@musicbot</string>
