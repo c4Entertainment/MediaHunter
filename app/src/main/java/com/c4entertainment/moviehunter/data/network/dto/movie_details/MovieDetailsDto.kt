@@ -5,6 +5,11 @@ import com.squareup.moshi.JsonClass
 
 
 @JsonClass(generateAdapter = true)
+data class ExternalIdsDto(
+    @field:Json(name = "imdb_id") var imdbId: String? = null,
+)
+
+@JsonClass(generateAdapter = true)
 data class MovieDetailsDto(
 
     @field:Json(name = "adult") var adult: Boolean? = null,
@@ -36,6 +41,8 @@ data class MovieDetailsDto(
     @field:Json(name = "vote_average") var voteAverage: Double? = null,
     @field:Json(name = "vote_count") var voteCount: Int? = null,
     @field:Json(name = "videos") var videos: VideosDto? = null,
-    @field:Json(name = "credits") var credits: CreditsDto? = null
+    @field:Json(name = "credits") var credits: CreditsDto? = null,
+    // TV details have no top-level imdb_id; it comes from append_to_response=external_ids.
+    @field:Json(name = "external_ids") var externalIds: ExternalIdsDto? = null
 
 )

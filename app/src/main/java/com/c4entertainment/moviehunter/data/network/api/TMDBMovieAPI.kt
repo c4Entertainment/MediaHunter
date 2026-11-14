@@ -36,7 +36,7 @@ interface TMDBMovieAPI {
         @Path("id") id: Int,
         @Path("type") type: String = "movie",
         @Query("language") language: String = "en-US",
-        @Query("append_to_response") appendToResponse: String = "videos,credits",
+        @Query("append_to_response") appendToResponse: String = "videos,credits,external_ids",
         @Query("api_key") apiKey: String = API_KEY,
     ): MovieDetailsDto
 

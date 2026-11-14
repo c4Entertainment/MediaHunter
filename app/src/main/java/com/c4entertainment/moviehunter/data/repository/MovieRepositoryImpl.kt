@@ -16,7 +16,9 @@ import com.c4entertainment.moviehunter.data.network.SearchMovieNetworkMediator
 import com.c4entertainment.moviehunter.data.network.api.TMDBMovieAPI
 import com.c4entertainment.moviehunter.domain.model.movie.Movie
 import com.c4entertainment.moviehunter.domain.model.movie_details.MovieDetails
+import com.c4entertainment.moviehunter.domain.model.movie_details.TvEpisode
 import com.c4entertainment.moviehunter.domain.model.movie_details.TvSeason
+import com.c4entertainment.moviehunter.domain.model.movie_details.TvSeasonsInfo
 import com.c4entertainment.moviehunter.domain.repository.MovieRepository
 import com.c4entertainment.moviehunter.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -190,9 +192,10 @@ class MovieRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun getTvSeasons(id: Int): Resource<List<TvSeason>> {
+    override suspend fun getTvSeasons(id: Int): Resource<TvSeasonsInfo> {
         return try {
-            val seasons = tmDBApi.getTvSeasons(id = id).seasons
+            val response = tmDBApi.getTvSeasons(id = id)
+            val seasons = response.seasons
                 // Season 0 holds specials, which torrents rarely name by season.
                 .filter { it.seasonNumber > 0 }
                 .map {
@@ -202,7 +205,12 @@ class MovieRepositoryImpl @Inject constructor(
                         episodeCount = it.episodeCount ?: 0,
                     )
                 }
-            Resource.Success(seasons)
+            val latestEpisode = response.lastEpisodeToAir?.let { episode ->
+                val season = episode.seasonNumber?.takeIf { it > 0 } ?: return@let null
+                val number = episode.episodeNumber?.takeIf { it > 0 } ?: return@let null
+                TvEpisode(season, number, episode.name, episode.airDate)
+            }
+            Resource.Success(TvSeasonsInfo(seasons, latestEpisode))
         } catch (e: IOException) {
             Resource.Error(e.message ?: "An error occurred")
         } catch (e: HttpException) {

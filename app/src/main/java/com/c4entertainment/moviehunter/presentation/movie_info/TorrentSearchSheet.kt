@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.c4entertainment.moviehunter.domain.model.movie_details.TvEpisode
 import com.c4entertainment.moviehunter.domain.model.movie_details.TvSeason
 
 /** Builds a torrent search query: torrent names rarely keep punctuation like ":" or "'". */
@@ -45,7 +46,9 @@ private fun episodeTag(season: Int, episode: Int) = "S%02dE%02d".format(season, 
 fun TvTorrentSearchSheet(
     title: String,
     seasons: List<TvSeason>,
-    onSearch: (query: String) -> Unit,
+    latestEpisode: TvEpisode?,
+    /** [season] and [episode] are null for the whole series, [episode] for a whole season. */
+    onSearch: (query: String, season: Int?, episode: Int?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var expandedSeason by remember { mutableStateOf<Int?>(null) }
@@ -58,11 +61,26 @@ fun TvTorrentSearchSheet(
         )
 
         LazyColumn {
+            if (latestEpisode != null) {
+                item {
+                    val tag = episodeTag(latestEpisode.season, latestEpisode.episode)
+                    ListItem(
+                        headlineContent = { Text("Latest episode") },
+                        supportingContent = {
+                            Text(listOfNotNull(tag, latestEpisode.name, latestEpisode.airDate).joinToString(" · "))
+                        },
+                        modifier = Modifier.clickable {
+                            onSearch(torrentQuery(title, tag), latestEpisode.season, latestEpisode.episode)
+                        }
+                    )
+                }
+            }
+
             item {
                 ListItem(
                     headlineContent = { Text("Complete series") },
                     supportingContent = { Text(torrentQuery(title)) },
-                    modifier = Modifier.clickable { onSearch(torrentQuery(title)) }
+                    modifier = Modifier.clickable { onSearch(torrentQuery(title), null, null) }
                 )
             }
 
@@ -91,13 +109,19 @@ fun TvTorrentSearchSheet(
                             .padding(horizontal = 16.dp)
                     ) {
                         AssistChip(
-                            onClick = { onSearch(torrentQuery(title, seasonTag(season.number))) },
+                            onClick = {
+                                onSearch(torrentQuery(title, seasonTag(season.number)), season.number, null)
+                            },
                             label = { Text("Whole season") }
                         )
                         for (episode in 1..season.episodeCount) {
                             AssistChip(
                                 onClick = {
-                                    onSearch(torrentQuery(title, episodeTag(season.number, episode)))
+                                    onSearch(
+                                        torrentQuery(title, episodeTag(season.number, episode)),
+                                        season.number,
+                                        episode,
+                                    )
                                 },
                                 label = { Text("E%02d".format(episode)) }
                             )

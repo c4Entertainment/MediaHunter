@@ -144,7 +144,7 @@ fun MovieDetailsDto.toMovieDetailsEntity(): MovieDetailsEntity {
         budget = budget,
         genres = genres.map { Genre(it.id, it.name) },
         homepage = homepage,
-        imdbId = imdbId,
+        imdbId = imdbId?.takeIf { it.isNotBlank() } ?: externalIds?.imdbId,
         originalLanguage = originalLanguage,
         originalTitle = originalTitle,
         overview = overview,

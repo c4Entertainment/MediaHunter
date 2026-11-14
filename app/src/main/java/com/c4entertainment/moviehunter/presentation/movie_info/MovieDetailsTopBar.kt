@@ -2,7 +2,6 @@ package com.c4entertainment.moviehunter.presentation.movie_info
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,7 +18,6 @@ import com.c4entertainment.moviehunter.R
 fun MovieDetailsTopBar(
     title: String = stringResource(id = R.string.app_name),
     navigateBack: () -> Unit,
-    onFindTorrents: (() -> Unit)? = null,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     TopAppBar(
@@ -36,16 +34,6 @@ fun MovieDetailsTopBar(
                 )
             }
         },
-        actions = {
-            if (onFindTorrents != null) {
-                IconButton(onClick = onFindTorrents) {
-                    Icon(
-                        imageVector = Icons.Filled.Download,
-                        contentDescription = "Find torrents",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }, scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior
     )
 }

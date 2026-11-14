@@ -5,6 +5,7 @@ import com.c4entertainment.moviehunter.data.cache.entity.movie.MovieEntity
 import com.c4entertainment.moviehunter.data.cache.entity.search.MovieSearchEntity
 import com.c4entertainment.moviehunter.domain.model.movie_details.MovieDetails
 import com.c4entertainment.moviehunter.domain.model.movie_details.TvSeason
+import com.c4entertainment.moviehunter.domain.model.movie_details.TvSeasonsInfo
 import com.c4entertainment.moviehunter.domain.model.movie.Movie
 import com.c4entertainment.moviehunter.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +27,7 @@ interface MovieRepository {
         type: String
     ): Flow<Resource<MovieDetails>>
 
-    suspend fun getTvSeasons(id: Int): Resource<List<TvSeason>>
+    suspend fun getTvSeasons(id: Int): Resource<TvSeasonsInfo>
 
 suspend fun clearSearch(): Flow<Resource<Boolean>>
 

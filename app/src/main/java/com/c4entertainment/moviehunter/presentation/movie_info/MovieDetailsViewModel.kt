@@ -94,7 +94,10 @@ class MovieDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val result = repository.getTvSeasons(id = id)
             if (result is Resource.Success) {
-                state = state.copy(tvSeasons = result.data.orEmpty())
+                state = state.copy(
+                    tvSeasons = result.data?.seasons.orEmpty(),
+                    latestEpisode = result.data?.latestEpisode,
+                )
             } else {
                 Log.d(TAG, "getTvSeasons: ${result.errorMessage}")
             }
