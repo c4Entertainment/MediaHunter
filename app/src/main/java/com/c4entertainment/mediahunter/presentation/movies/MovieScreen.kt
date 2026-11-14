@@ -47,7 +47,6 @@ private const val TAG = "MovieScreen"
 fun MovieScreen(
     navController: NavController,
     viewModel: MovieViewModel,
-    showSettingsDialog: () -> Unit,
 ) {
 
     val settingsState by viewModel.settingsUiState.collectAsStateWithLifecycle()
@@ -63,7 +62,6 @@ fun MovieScreen(
         scrollBehavior = scrollBehavior,
         movieEvent = viewModel::onMovieEvent,
         navigate = navController::navigate,
-        showSettingsDialog = showSettingsDialog,
         useGrid = useGrid,
         movieTV = movieTV,
         selectedSection = selectedSection,
@@ -80,7 +78,6 @@ fun MovieScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     movieEvent: (MovieEvent) -> Unit,
     navigate: (String) -> Unit,
-    showSettingsDialog: () -> Unit,
     useGrid: Boolean,
     movieTV: String,
     selectedSection: CatalogSection?,
@@ -107,10 +104,10 @@ fun MovieScreen(
         topBar = {
             MovieScreenTopBar(isGridView = useGrid, toggleView = {
                 movieEvent(MovieEvent.OnToggleView(!useGrid))
-            }, onSettingsClicked = showSettingsDialog, onTorrentSearchClicked = {
+            }, onSettingsClicked = {
+                navigate(Screen.SettingsScreen.route)
+            }, onTorrentSearchClicked = {
                 context.startActivity(TorrentSearch.homeIntent(context))
-            }, onTorrentSettingsClicked = {
-                context.startActivity(TorrentSearch.settingsIntent(context))
             }, onSearchClicked = {
                 if (selectedSection != null) {
                     catalogSearchOpen = true

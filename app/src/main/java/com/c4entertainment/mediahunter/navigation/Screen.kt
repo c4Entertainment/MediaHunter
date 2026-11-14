@@ -7,4 +7,6 @@ sealed class Screen(val route: String) {
     object MovieScreen: Screen(MOVIE_SCREEN)
 
     object SearchScreen: Screen(SEARCH_SCREEN)
+
+    object SettingsScreen: Screen("Settings")
 }

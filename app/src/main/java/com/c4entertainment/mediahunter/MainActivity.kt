@@ -2,10 +2,8 @@ package com.c4entertainment.mediahunter
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,7 +45,8 @@ import com.c4entertainment.mediahunter.presentation.movie_info.MovieDetailsScree
 import com.c4entertainment.mediahunter.presentation.movie_info.MovieDetailsViewModel
 import com.c4entertainment.mediahunter.presentation.movies.MovieScreen
 import com.c4entertainment.mediahunter.presentation.movies.MovieViewModel
-import com.c4entertainment.mediahunter.presentation.profile.SettingsDialog
+import com.c4entertainment.mediahunter.presentation.profile.SettingsScreen
+import com.c4entertainment.mediahunter.presentation.profile.SettingsViewModel
 import com.c4entertainment.mediahunter.presentation.search.SearchScreen
 import com.c4entertainment.mediahunter.presentation.search.SearchViewModel
 import com.c4entertainment.mediahunter.ui.theme.MediaHunterTheme
@@ -59,7 +58,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executor
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -71,9 +69,6 @@ class MainActivity : FragmentActivity() {
     @Inject
     lateinit var connectivityObserver: ConnectivityObserver
 
-    private lateinit var executor: Executor
-    private lateinit var biometricPrompt: BiometricPrompt
-    private lateinit var promptInfo: BiometricPrompt.PromptInfo
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,8 +102,6 @@ class MainActivity : FragmentActivity() {
             val darkTheme = shouldUseDarkTheme(uiState)
             val useDynamicColor = useDynamicColor(uiState = uiState)
             val snackbarHostState = remember { SnackbarHostState() }
-            val showSettingsDialog = remember { mutableStateOf(false) }
-            val useFingerprint = shouldUseFingerPrint(uiState = uiState)
 
 
             val status by connectivityObserver.observe().collectAsState(
@@ -138,28 +131,14 @@ class MainActivity : FragmentActivity() {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentDestination = navBackStackEntry?.destination?.route
 
-                    val biometricsInitialised = remember { mutableStateOf(false) }
-                    if (!biometricsInitialised.value) {
-                        initBiometrics(navController)
-                        biometricsInitialised.value = true
-                    }
-
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
                     ) {
 
                         NavSetUp(
                             navController = navController,
-                            useFingerPrint = useFingerprint,
-                            showSettingsDialog = { showSettingsDialog.value = true },
                             paddingValues = it)
 
-                    }
-
-                    if (showSettingsDialog.value) {
-                        SettingsDialog(
-                            onDismiss = { showSettingsDialog.value = false },
-                        )
                     }
 
                     // If user is not connected to the internet show a snack bar to inform them.
@@ -184,8 +163,6 @@ class MainActivity : FragmentActivity() {
     @Composable
     private fun NavSetUp(
         navController: NavHostController,
-        useFingerPrint: Boolean,
-        showSettingsDialog: () -> Unit = {},
         paddingValues: PaddingValues,
     ) {
         NavHost(
@@ -200,7 +177,6 @@ class MainActivity : FragmentActivity() {
                 MovieScreen(
                     navController = navController,
                     viewModel = viewModel,
-                    showSettingsDialog = showSettingsDialog
                 )
             }
             composable("movie/{type}/{id}") { backStackEntry ->
@@ -215,6 +191,12 @@ class MainActivity : FragmentActivity() {
                     navigateBack = { navController.popBackStack() },
                 )
             }
+            composable(Screen.SettingsScreen.route) {
+                SettingsScreen(
+                    viewModel = hiltViewModel<SettingsViewModel>(),
+                    navigateBack = { navController.popBackStack() },
+                )
+            }
             composable(Screen.SearchScreen.route) {
                 val viewModel = hiltViewModel<SearchViewModel>()
                 SearchScreen(
@@ -225,68 +207,6 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-
-    @Composable
-    private fun initBiometrics(navController: NavHostController) {
-        executor = ContextCompat.getMainExecutor(this)
-        biometricPrompt = BiometricPrompt(this, executor,
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationError(
-                    errorCode: Int,
-                    errString: CharSequence
-                ) {
-                    super.onAuthenticationError(errorCode, errString)
-
-                    if (errorCode == BiometricPrompt.ERROR_NO_BIOMETRICS ||
-                        errorCode == BiometricPrompt.ERROR_HW_NOT_PRESENT) {
-                        navController.navigate(Screen.MovieScreen.route) {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                        }
-                    } else {
-                        Toast.makeText(
-                            applicationContext,
-                            "Authentication error: $errString", Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-
-                override fun onAuthenticationSucceeded(
-                    result: BiometricPrompt.AuthenticationResult
-                ) {
-                    super.onAuthenticationSucceeded(result)
-                    navController.navigate(Screen.MovieScreen.route) {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                    }
-                }
-
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                    Toast.makeText(
-                        applicationContext, "Authentication failed",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
-
-        promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Biometrics")
-            .setSubtitle("Confirm fingerprint to continue")
-            .setNegativeButtonText("Use account password")
-            .build()
-    }
-
-    private fun checkBiometricsAndNavigate(
-        useFingerprint: Boolean = true,
-        navController: NavHostController
-    ) {
-        if (useFingerprint) {
-            biometricPrompt.authenticate(promptInfo)
-        } else {
-            navController.navigate(Screen.MovieScreen.route) {
-                popUpTo(navController.graph.id) { inclusive = true }
-            }
-        }
-    }
 
     /**
      * Returns `true` if the dynamic color is disabled, as a function of the [uiState].
@@ -318,13 +238,5 @@ class MainActivity : FragmentActivity() {
                 isSystemInDarkTheme()
             }
         }
-    }
-
-    @Composable
-    private fun shouldUseFingerPrint(
-        uiState: MainActivityUiState,
-    ): Boolean = when (uiState) {
-        MainActivityUiState.Loading -> false
-        is MainActivityUiState.Success -> uiState.userSettings.useFingerPrint
     }
 }

@@ -30,7 +30,6 @@ fun MovieScreenTopBar(
     onSearchClicked: () -> Unit,
     onSettingsClicked: () -> Unit,
     onTorrentSearchClicked: () -> Unit,
-    onTorrentSettingsClicked: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     TopAppBar(
@@ -65,10 +64,10 @@ fun MovieScreenTopBar(
                 )
             }
 
-            IconButton(onClick = onTorrentSettingsClicked) {
+            IconButton(onClick = onSettingsClicked) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = "Torrent search settings",
+                    contentDescription = "Settings",
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
