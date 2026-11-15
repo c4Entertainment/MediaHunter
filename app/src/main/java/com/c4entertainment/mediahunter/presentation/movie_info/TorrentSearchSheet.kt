@@ -3,6 +3,7 @@ package com.c4entertainment.mediahunter.presentation.movie_info
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
 import com.c4entertainment.mediahunter.R
+import com.c4entertainment.mediahunter.components.EpisodePicker
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.clickable
@@ -109,30 +110,29 @@ fun TvTorrentSearchSheet(
                 )
 
                 if (isExpanded) {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                    ) {
-                        AssistChip(
-                            onClick = {
-                                onSearch(torrentQuery(title, seasonTag(season.number)), season.number, null)
-                            },
-                            label = { Text(stringResource(R.string.tv_whole_season)) }
-                        )
-                        for (episode in 1..season.episodeCount) {
+                    EpisodePicker(
+                        count = season.episodeCount,
+                        latest = latestEpisode?.takeIf { it.season == season.number }?.episode
+                            ?: season.episodeCount,
+                        leading = {
                             AssistChip(
                                 onClick = {
-                                    onSearch(
-                                        torrentQuery(title, episodeTag(season.number, episode)),
-                                        season.number,
-                                        episode,
-                                    )
+                                    onSearch(torrentQuery(title, seasonTag(season.number)), season.number, null)
                                 },
-                                label = { Text(stringResource(R.string.episode_short, "%02d".format(episode))) }
+                                label = { Text(stringResource(R.string.tv_whole_season)) }
                             )
-                        }
+                        },
+                    ) { episode ->
+                        AssistChip(
+                            onClick = {
+                                onSearch(
+                                    torrentQuery(title, episodeTag(season.number, episode)),
+                                    season.number,
+                                    episode,
+                                )
+                            },
+                            label = { Text(stringResource(R.string.episode_short, "%02d".format(episode))) }
+                        )
                     }
                 }
             }

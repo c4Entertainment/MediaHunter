@@ -118,6 +118,7 @@
     <string name="tv_whole_season">Whole season</string>
     <string name="tv_collapse">Collapse</string>
     <string name="tv_expand">Expand</string>
+    <string name="episode_range">%1$d–%2$d</string>
     <string name="episode_short">E%1$s</string>
     <plurals name="episode_count">
         <item quantity="one">%1$d episode</item>
