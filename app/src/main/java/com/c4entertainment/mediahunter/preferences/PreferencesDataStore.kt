@@ -55,6 +55,7 @@ constructor(app: MediaHunterApp) {
                 preferences[SECTION_ORDER]?.split(",")?.filter { it.isNotEmpty() }.orEmpty()
             ),
             telegramBot = preferences[TELEGRAM_BOT] ?: "",
+            tmdbApiKey = preferences[TMDB_API_KEY] ?: "",
             recentSearches = preferences[RECENT_SEARCHES]?.split(RECENT_SEPARATOR)?.filter { it.isNotEmpty() }.orEmpty(),
         )
     }
@@ -168,6 +169,14 @@ constructor(app: MediaHunterApp) {
         }
     }
 
+    fun setTmdbApiKey(key: String) {
+        scope.launch {
+            datastore.edit { preferences ->
+                if (key.isEmpty()) preferences.remove(TMDB_API_KEY) else preferences[TMDB_API_KEY] = key
+            }
+        }
+    }
+
     /** Puts [query] first in the recent searches, dropping a duplicate (ignoring case) and anything past the limit. */
     fun addRecentSearch(query: String) {
         val clean = query.replace(RECENT_SEPARATOR, " ").trim()
@@ -210,6 +219,7 @@ constructor(app: MediaHunterApp) {
         private val START_ON = stringPreferencesKey("start_on_key")
         private val SECTION_ORDER = stringPreferencesKey("section_order_key")
         private val TELEGRAM_BOT = stringPreferencesKey("telegram_bot_key")
+        private val TMDB_API_KEY = stringPreferencesKey("tmdb_api_key")
         private val RECENT_SEARCHES = stringPreferencesKey("recent_searches_key")
         private const val RECENT_SEPARATOR = "\n"
         private const val MAX_RECENT_SEARCHES = 10

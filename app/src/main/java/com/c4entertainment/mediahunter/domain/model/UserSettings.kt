@@ -35,6 +35,8 @@ data class UserSettings(
     val musicGenre: String? = null,
     /** Telegram username (no "@") of the music bot searches are sent to; empty means the chat picker. */
     val telegramBot: String = "",
+    /** The user's own TMDB API key; empty means the key built into the app is used. Never shown in the UI. */
+    val tmdbApiKey: String = "",
     /** Home genre filter (TMDB genre id) and release year per mode; null means Any. */
     val movieGenre: Int? = null,
     val movieYear: Int? = null,

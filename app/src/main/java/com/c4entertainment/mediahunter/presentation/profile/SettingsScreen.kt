@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.SwapVert
@@ -111,6 +112,7 @@ fun SettingsScreen(
     val lockOn = settings?.useFingerPrint == true
     val canLock = remember { AppLock.canLock(context) }
     var botDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var tmdbDialogOpen by rememberSaveable { mutableStateOf(false) }
 
     // Turning the lock on needs one successful unlock, so nobody sets a lock
     // they can't open.
@@ -267,6 +269,30 @@ fun SettingsScreen(
                     context.startActivity(TorrentSearch.settingsIntent(context))
                 },
             )
+
+            HorizontalDivider()
+            SectionTitle(stringResource(R.string.settings_tmdb))
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.tmdb_api_key)) },
+                supportingContent = {
+                    Text(
+                        stringResource(
+                            if (settings?.hasOwnTmdbKey == true) R.string.tmdb_api_key_own
+                            else R.string.tmdb_api_key_builtin
+                        )
+                    )
+                },
+                leadingContent = { Icon(Icons.Default.Key, contentDescription = null) },
+                modifier = Modifier.clickable { tmdbDialogOpen = true },
+            )
+            if (tmdbDialogOpen) {
+                TmdbApiKeyDialog(
+                    onSave = { viewModel.updateTmdbApiKey(it); tmdbDialogOpen = false },
+                    onUseBuiltIn = { viewModel.updateTmdbApiKey(""); tmdbDialogOpen = false },
+                    onGetKey = { context.openUrl(TMDB_API_SETTINGS_URL) },
+                    onDismiss = { tmdbDialogOpen = false },
+                )
+            }
 
             HorizontalDivider()
             SectionTitle(stringResource(R.string.settings_about))
@@ -600,6 +626,51 @@ private fun TelegramBotDialog(
             Row {
                 TextButton(onClick = { onSave("") }) { Text(stringResource(R.string.telegram_music_bot_clear)) }
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.telegram_music_bot_cancel)) }
+            }
+        },
+    )
+}
+
+private const val TMDB_API_SETTINGS_URL = "https://www.themoviedb.org/settings/api"
+
+/**
+ * Asks for the user's own TMDB key. The field starts empty even when a key is
+ * set, so the key is never shown; Save with a blank field changes nothing.
+ */
+@Composable
+private fun TmdbApiKeyDialog(
+    onSave: (String) -> Unit,
+    onUseBuiltIn: () -> Unit,
+    onGetKey: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var text by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.tmdb_api_key)) },
+        text = {
+            Column {
+                Text(stringResource(R.string.tmdb_api_key_explain))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.tmdb_api_key_hint)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                TextButton(onClick = onGetKey) { Text(stringResource(R.string.tmdb_api_key_get)) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { if (text.isBlank()) onDismiss() else onSave(text) }) {
+                Text(stringResource(R.string.tmdb_api_key_save))
+            }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onUseBuiltIn) { Text(stringResource(R.string.tmdb_api_key_use_builtin)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.tmdb_api_key_cancel)) }
             }
         },
     )

@@ -43,6 +43,7 @@ class SettingsViewModel @Inject constructor(
                         pureBlack = userData.pureBlack,
                         darkThemeConfig = userData.darkThemeConfig,
                         telegramBot = userData.telegramBot,
+                        hasOwnTmdbKey = userData.tmdbApiKey.isNotEmpty(),
                         startOn = userData.startOn,
                         sectionOrder = userData.sectionOrder,
                     ),
@@ -94,6 +95,13 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /** Saves the user's own TMDB key; blank switches back to the built-in key. */
+    fun updateTmdbApiKey(input: String) {
+        viewModelScope.launch {
+            userDataRepository.setTmdbApiKey(input.trim())
+        }
+    }
+
     fun updateDynamicColorPreference(useDynamicColor: Boolean) {
         viewModelScope.launch {
             userDataRepository.setDynamicColorPreference(useDynamicColor)
@@ -112,6 +120,8 @@ data class UserEditableSettings(
     val pureBlack: Boolean,
     val darkThemeConfig: String,
     val telegramBot: String = "",
+    /** Whether the user set their own TMDB key; the key itself never leaves the data layer. */
+    val hasOwnTmdbKey: Boolean = false,
     val startOn: String? = null,
     val sectionOrder: List<String> = HomeSections.defaultOrder,
 )

@@ -57,6 +57,9 @@ interface UserSettingsRepository {
     /** Remembers the Telegram music bot username; empty clears it. */
     suspend fun setTelegramBot(bot: String)
 
+    /** Remembers the user's own TMDB API key; blank clears it and the built-in key is used again. */
+    suspend fun setTmdbApiKey(key: String)
+
     /** Remembers a Search screen query, newest first, without duplicates. */
     suspend fun addRecentSearch(query: String)
 

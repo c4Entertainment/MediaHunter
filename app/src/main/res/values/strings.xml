@@ -29,6 +29,17 @@
     <string name="settings_torrent_search">Torrent search</string>
     <string name="torrent_search_settings">Torrent search settings</string>
     <string name="torrent_search_settings_summary">Providers, sorting, NSFW, history and more</string>
+    <string name="settings_tmdb">TMDB</string>
+    <string name="tmdb_api_key">TMDB API key</string>
+    <string name="tmdb_api_key_builtin">Built-in key</string>
+    <string name="tmdb_api_key_own">Your own key</string>
+    <string name="tmdb_api_key_hint">Paste your TMDB API key</string>
+    <string name="tmdb_api_key_explain">Movies and shows come from TMDB. Media Hunter uses its own key unless you add yours.</string>
+    <string name="tmdb_api_key_get">Get a free key</string>
+    <string name="tmdb_api_key_save">Save</string>
+    <string name="tmdb_api_key_use_builtin">Use built-in</string>
+    <string name="tmdb_api_key_cancel">Cancel</string>
+    <string name="state_error_missing_tmdb_key">Add a TMDB API key in Settings to load movies and shows.</string>
     <string name="settings_about">About</string>
     <string name="app_version">Version</string>
     <string name="source_code">Source code</string>

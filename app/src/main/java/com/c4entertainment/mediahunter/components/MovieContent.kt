@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.c4entertainment.mediahunter.R
+import com.c4entertainment.mediahunter.data.network.MissingTmdbKeyException
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.c4entertainment.mediahunter.components.movie_listing.MovieTVChip
@@ -87,7 +88,11 @@ fun MovieContent(
                 if (useGrid) LoadingPlaceholders() else LoadingListPlaceholders()
             } else if (content.itemCount == 0) {
                 if (content.loadState.refresh is LoadState.Error) {
-                    ErrorMessage(onRetry = { content.refresh() })
+                    ErrorMessage(
+                        onRetry = { content.refresh() },
+                        body = if ((content.loadState.refresh as LoadState.Error).error is MissingTmdbKeyException)
+                            stringResource(R.string.state_error_missing_tmdb_key) else null,
+                    )
                 } else {
                     PullToRefreshBox(
                         isRefreshing = false,

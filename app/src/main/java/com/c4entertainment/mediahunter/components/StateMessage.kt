@@ -91,14 +91,14 @@ fun NoResultsMessage(hint: String, modifier: Modifier = Modifier) {
 
 /** A load failed. Says whether the phone is offline and offers Retry. */
 @Composable
-fun ErrorMessage(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+fun ErrorMessage(onRetry: () -> Unit, modifier: Modifier = Modifier, body: String? = null) {
     val context = LocalContext.current
     // Checked when the error shows, which is when it matters.
     val offline = remember { !context.isOnline() }
     StateMessage(
         icon = if (offline) Icons.Outlined.CloudOff else Icons.Outlined.ErrorOutline,
         title = stringResource(R.string.state_error_title),
-        body = stringResource(if (offline) R.string.state_error_offline else R.string.state_error_generic),
+        body = body ?: stringResource(if (offline) R.string.state_error_offline else R.string.state_error_generic),
         modifier = modifier,
         actionLabel = stringResource(R.string.state_retry),
         onAction = onRetry,

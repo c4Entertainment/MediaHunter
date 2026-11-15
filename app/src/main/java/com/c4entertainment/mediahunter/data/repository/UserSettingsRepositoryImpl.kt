@@ -80,6 +80,10 @@ class UserSettingsRepositoryImpl @Inject constructor(
         preferencesDataSource.setTelegramBot(bot)
     }
 
+    override suspend fun setTmdbApiKey(key: String) {
+        preferencesDataSource.setTmdbApiKey(key.trim())
+    }
+
     override suspend fun addRecentSearch(query: String) {
         preferencesDataSource.addRecentSearch(query)
     }

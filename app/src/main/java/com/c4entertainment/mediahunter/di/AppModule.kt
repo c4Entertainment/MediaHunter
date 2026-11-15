@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.c4entertainment.mediahunter.MediaHunterApp
 import com.c4entertainment.mediahunter.data.cache.MovieDatabase
+import com.c4entertainment.mediahunter.data.network.TmdbApiKeyInterceptor
 import com.c4entertainment.mediahunter.data.network.api.AniListAPI
 import com.c4entertainment.mediahunter.data.network.api.KitsuAPI
 import com.c4entertainment.mediahunter.data.network.api.DeezerAPI
@@ -17,6 +18,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
@@ -43,9 +45,10 @@ object AppModule {
 
     @Provides
     @Singleton
-        fun provideMovieApi2(): TMDBMovieAPI {
+    fun provideMovieApi2(keyInterceptor: TmdbApiKeyInterceptor): TMDBMovieAPI {
         return Retrofit.Builder()
             .baseUrl(TMDBMovieAPI.BASE_URL)
+            .client(OkHttpClient.Builder().addInterceptor(keyInterceptor).build())
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
             .create(TMDBMovieAPI::class.java)
