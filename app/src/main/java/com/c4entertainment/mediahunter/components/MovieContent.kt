@@ -11,11 +11,11 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.c4entertainment.mediahunter.R
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.c4entertainment.mediahunter.components.movie_listing.MovieTVChip
-import com.c4entertainment.mediahunter.components.movie_listing.PagingDataErrorWidget
-import com.c4entertainment.mediahunter.components.movie_listing.PagingDataNoResultsWidget
 import com.c4entertainment.mediahunter.components.movie_listing.view.GridContent
 import com.c4entertainment.mediahunter.components.movie_listing.view.ListContent
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
@@ -80,12 +80,14 @@ fun MovieContent(
                 if (useGrid) LoadingPlaceholders() else LoadingListPlaceholders()
             } else if (content.itemCount == 0) {
                 if (content.loadState.refresh is LoadState.Error) {
-                    PagingDataErrorWidget(
-                        retry = { content.refresh() },
-                        errorMessage = (content.loadState.refresh as LoadState.Error).error.message
-                    )
+                    ErrorMessage(onRetry = { content.refresh() })
                 } else {
-                    PagingDataNoResultsWidget()
+                    PullToRefreshBox(
+                        isRefreshing = false,
+                        onRefresh = { content.refresh() },
+                    ) {
+                        NoResultsMessage(hint = stringResource(R.string.state_no_results_pull_to_refresh))
+                    }
                 }
             } else {
 

@@ -114,6 +114,8 @@ class MovieDetailsViewModel @Inject constructor(
         id: Int,
         type: String
     ) {
+        // A retry starts from the loading state, not the old error.
+        state = state.copy(error = null)
         viewModelScope.launch {
             repository
                 .getMovie(id = id, type = type)

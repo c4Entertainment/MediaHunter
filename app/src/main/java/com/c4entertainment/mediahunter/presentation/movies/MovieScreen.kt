@@ -5,6 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.remember
+import androidx.compose.ui.res.stringResource
+import com.c4entertainment.mediahunter.R
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -86,6 +92,23 @@ fun MovieScreen(
 ) {
 
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val refreshFailed = stringResource(R.string.state_refresh_failed)
+    val retryLabel = stringResource(R.string.state_retry)
+
+    // A failed refresh with items already on screen keeps them and offers a retry.
+    LaunchedEffect(movies.loadState.refresh) {
+        if (movies.loadState.refresh is LoadState.Error && movies.itemCount > 0) {
+            val result = snackbarHostState.showSnackbar(refreshFailed, retryLabel)
+            if (result == SnackbarResult.ActionPerformed) movies.refresh()
+        }
+    }
+    LaunchedEffect(catalogState) {
+        if (selectedSection != null && catalogState.error != null && catalogState.items.isNotEmpty()) {
+            val result = snackbarHostState.showSnackbar(refreshFailed, retryLabel)
+            if (result == SnackbarResult.ActionPerformed) movieEvent(MovieEvent.OnCatalogRefresh)
+        }
+    }
 
     CatalogItemActionHost(
         telegramBot = telegramBot,
@@ -96,6 +119,7 @@ fun MovieScreen(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             MovieScreenTopBar(isGridView = useGrid, showViewToggle = selectedSection == null, toggleView = {
                 movieEvent(MovieEvent.OnToggleView(!useGrid))

@@ -25,6 +25,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import com.c4entertainment.mediahunter.components.ErrorMessage
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -172,23 +173,7 @@ fun MovieDetails(
             if (state.isLoading) {
                 CircularProgressIndicator()
             } else if (state.error != null) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                ) {
-                    Text(
-                        text = state.error,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    // TODO: Add retry button
-//                Button(onClick = { // TODO:
-//                     }) {
-//                    Text(text = "Retry")
-//                }
-                }
+                ErrorMessage(onRetry = { viewModel.getMovie(id.toInt(), type) })
             }
         }
     }

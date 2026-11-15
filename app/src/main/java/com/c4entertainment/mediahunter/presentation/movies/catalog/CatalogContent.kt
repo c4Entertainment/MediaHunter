@@ -35,14 +35,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.c4entertainment.mediahunter.R
 import com.c4entertainment.mediahunter.components.LoadingPlaceholders
 import com.c4entertainment.mediahunter.components.MediaCard
-import com.c4entertainment.mediahunter.components.movie_listing.PagingDataErrorWidget
-import com.c4entertainment.mediahunter.components.movie_listing.PagingDataNoResultsWidget
+import com.c4entertainment.mediahunter.components.ErrorMessage
+import com.c4entertainment.mediahunter.components.NoResultsMessage
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
@@ -120,9 +121,15 @@ fun CatalogContent(
         )
 
         state.items.isEmpty() && state.error != null ->
-            PagingDataErrorWidget(retry = onRefresh, errorMessage = state.error)
+            ErrorMessage(onRetry = onRefresh)
 
-        state.items.isEmpty() -> PagingDataNoResultsWidget()
+        state.items.isEmpty() -> PullToRefreshBox(
+            isRefreshing = false,
+            onRefresh = onRefresh,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            NoResultsMessage(hint = stringResource(R.string.state_no_results_pull_to_refresh))
+        }
 
         else -> PullToRefreshBox(
             isRefreshing = state.isLoading,

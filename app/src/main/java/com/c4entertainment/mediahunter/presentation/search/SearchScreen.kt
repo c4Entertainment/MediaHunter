@@ -60,7 +60,8 @@ import com.c4entertainment.mediahunter.components.Chip
 import com.c4entertainment.mediahunter.components.LoadingListPlaceholders
 import com.c4entertainment.mediahunter.components.LoadingPlaceholders
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
-import com.c4entertainment.mediahunter.components.movie_listing.PagingDataErrorWidget
+import com.c4entertainment.mediahunter.components.ErrorMessage
+import com.c4entertainment.mediahunter.components.NoResultsMessage
 import com.c4entertainment.mediahunter.components.movie_listing.view.GridContent
 import com.c4entertainment.mediahunter.components.movie_listing.view.ListContent
 import com.c4entertainment.mediahunter.domain.model.movie.Movie
@@ -150,10 +151,7 @@ fun SearchScreen(
                                 aspectRatio = catalog?.imageAspectRatio ?: (2f / 3f),
                                 minCellSize = if (catalog == CatalogSection.Games) 160.dp else 128.dp,
                             )
-                            is CatalogSearchResult.Error -> PagingDataErrorWidget(
-                                retry = viewModel::retry,
-                                errorMessage = result.message,
-                            )
+                            is CatalogSearchResult.Error -> ErrorMessage(onRetry = viewModel::retry)
 
                             is CatalogSearchResult.Success ->
                                 if (result.items.isEmpty() || catalog == null) {
@@ -317,10 +315,7 @@ private fun MovieResults(
             if (useGrid) GridContent(movies = movies, onNavigateToMovieDetail = onClick)
             else ListContent(movies = movies, onNavigateToMovieDetail = onClick)
 
-        refresh is LoadState.Error -> PagingDataErrorWidget(
-            retry = movies::retry,
-            errorMessage = refresh.error.message,
-        )
+        refresh is LoadState.Error -> ErrorMessage(onRetry = movies::retry)
 
         // Before the first load, paging reports NotLoading with no items;
         // only an exhausted source means there really are no results.
@@ -331,10 +326,5 @@ private fun MovieResults(
 
 @Composable
 private fun NoResults(sectionLabel: String) {
-    Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
-        Text(
-            text = stringResource(R.string.search_no_results, sectionLabel),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    NoResultsMessage(hint = stringResource(R.string.search_no_results_hint, sectionLabel))
 }
