@@ -43,6 +43,8 @@ fun MovieContent(
     onCatalogItemClick: (CatalogItem) -> Unit = {},
     musicChart: MusicChart = MusicChart(),
     onMusicChartChange: (MusicChart) -> Unit = {},
+    /** Shown above the Movies/TV list, e.g. genre and year chips. */
+    filters: (@Composable () -> Unit)? = null,
 ) {
     val isRefreshing = content.loadState.refresh is LoadState.Loading
     val pullToRefreshState = rememberPullToRefreshState()
@@ -69,6 +71,8 @@ fun MovieContent(
             )
             return@Column
         }
+
+        filters?.invoke()
 
         Box(
             modifier = Modifier

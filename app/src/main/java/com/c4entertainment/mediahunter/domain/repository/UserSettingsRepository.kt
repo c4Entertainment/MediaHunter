@@ -45,6 +45,9 @@ interface UserSettingsRepository {
     /** Remembers the music chart filters; [genre] null means all genres. */
     suspend fun setMusicChart(region: String, genre: String?)
 
+    /** Remembers Home's genre and year filters for [type] ("movie" or "tv"); null means Any. */
+    suspend fun setHomeFilter(type: String, genre: Int?, year: Int?)
+
     /** Remembers the Telegram music bot username; empty clears it. */
     suspend fun setTelegramBot(bot: String)
 

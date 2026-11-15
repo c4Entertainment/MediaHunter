@@ -45,6 +45,10 @@ constructor(app: MediaHunterApp) {
             movieTV = preferences[MOVIE_TV_FILTER] ?: MovieTVFilterConfig.MOVIE,
             musicRegion = preferences[MUSIC_REGION] ?: "Worldwide",
             musicGenre = preferences[MUSIC_GENRE],
+            movieGenre = preferences[MOVIE_GENRE],
+            movieYear = preferences[MOVIE_YEAR],
+            tvGenre = preferences[TV_GENRE],
+            tvYear = preferences[TV_YEAR],
             telegramBot = preferences[TELEGRAM_BOT] ?: "",
             recentSearches = preferences[RECENT_SEARCHES]?.split(RECENT_SEPARATOR)?.filter { it.isNotEmpty() }.orEmpty(),
         )
@@ -123,6 +127,17 @@ constructor(app: MediaHunterApp) {
         }
     }
 
+    fun setHomeFilter(type: String, genre: Int?, year: Int?) {
+        val genreKey = if (type == MovieTVFilterConfig.TV) TV_GENRE else MOVIE_GENRE
+        val yearKey = if (type == MovieTVFilterConfig.TV) TV_YEAR else MOVIE_YEAR
+        scope.launch {
+            datastore.edit { preferences ->
+                if (genre != null) preferences[genreKey] = genre else preferences.remove(genreKey)
+                if (year != null) preferences[yearKey] = year else preferences.remove(yearKey)
+            }
+        }
+    }
+
     fun setTelegramBot(bot: String) {
         scope.launch {
             datastore.edit { preferences ->
@@ -166,6 +181,10 @@ constructor(app: MediaHunterApp) {
 
         private val MUSIC_REGION = stringPreferencesKey("music_region_key")
         private val MUSIC_GENRE = stringPreferencesKey("music_genre_key")
+        private val MOVIE_GENRE = intPreferencesKey("movie_genre_key")
+        private val MOVIE_YEAR = intPreferencesKey("movie_year_key")
+        private val TV_GENRE = intPreferencesKey("tv_genre_key")
+        private val TV_YEAR = intPreferencesKey("tv_year_key")
         private val TELEGRAM_BOT = stringPreferencesKey("telegram_bot_key")
         private val RECENT_SEARCHES = stringPreferencesKey("recent_searches_key")
         private const val RECENT_SEPARATOR = "\n"

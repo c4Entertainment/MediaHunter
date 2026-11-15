@@ -101,6 +101,9 @@
     <string name="music_genre">Genre</string>
     <string name="music_genre_value">Genre: %1$s</string>
     <string name="music_genre_all">All</string>
+    <string name="filter_year">Year</string>
+    <string name="filter_year_value">Year: %1$d</string>
+    <string name="filter_any">Any</string>
     <string name="music_editors_picks">Editor\'s picks</string>
     <string name="music_note_region_genre">Region doesn\'t apply to genre charts.</string>
     <string name="music_note_editors_picks">Editor\'s picks ignores region and genre.</string>

@@ -1,6 +1,7 @@
 package com.c4entertainment.mediahunter.data.network.api
 
 import com.c4entertainment.mediahunter.BuildConfig
+import com.c4entertainment.mediahunter.data.network.apiresponses.GenreListResponse
 import com.c4entertainment.mediahunter.data.network.apiresponses.MoviesResponse
 import com.c4entertainment.mediahunter.data.network.dto.movie_details.MovieDetails2Dto
 import com.c4entertainment.mediahunter.data.network.dto.movie_details.MovieDetailsDto
@@ -30,6 +31,26 @@ interface TMDBMovieAPI {
     ): MoviesResponse
 
 
+
+    @GET("genre/{type}/list")
+    suspend fun getGenres(
+        @Path("type") type: String,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = API_KEY,
+    ): GenreListResponse
+
+    /** Browse by filter; null genre or year parameters are left out of the request. */
+    @GET("discover/{type}")
+    suspend fun discover(
+        @Path("type") type: String,
+        @Query("with_genres") genre: Int? = null,
+        @Query("primary_release_year") releaseYear: Int? = null,
+        @Query("first_air_date_year") firstAirYear: Int? = null,
+        @Query("sort_by") sortBy: String = "popularity.desc",
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = API_KEY,
+    ): MoviesResponse
 
     @GET("{type}/{id}")
     suspend fun getMovieDetails(

@@ -2,10 +2,17 @@ package com.c4entertainment.mediahunter.presentation.movies
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.c4entertainment.mediahunter.data.mappers.toMovie
+import com.c4entertainment.mediahunter.data.network.api.TMDBMovieAPI
+import com.c4entertainment.mediahunter.data.paging.DiscoverPagingSource
+import com.c4entertainment.mediahunter.data.repository.TmdbGenres
+import com.c4entertainment.mediahunter.domain.model.movie_details.Genre
+import com.c4entertainment.mediahunter.util.MovieTVFilterConfig
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
 import com.c4entertainment.mediahunter.domain.model.catalog.ArtistAlbum
 import com.c4entertainment.mediahunter.domain.model.catalog.ArtistRef
@@ -18,7 +25,12 @@ import com.c4entertainment.mediahunter.domain.repository.CatalogRepository
 import com.c4entertainment.mediahunter.domain.repository.MovieRepository
 import com.c4entertainment.mediahunter.domain.repository.UserSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +46,8 @@ class MovieViewModel @Inject constructor(
     private val repository: MovieRepository,
     private val userSettingsRepository: UserSettingsRepository,
     private val catalogRepository: CatalogRepository,
+    private val movieApi: TMDBMovieAPI,
+    private val tmdbGenres: TmdbGenres,
 ) : ViewModel() {
 
     val TAG = "MovieViewModel"
@@ -48,6 +62,8 @@ class MovieViewModel @Inject constructor(
                     settings = UserEditableSettings(
                         movieTV = userData.movieTV,
                         useGrid = userData.useGrid,
+                        genre = if (userData.movieTV == MovieTVFilterConfig.TV) userData.tvGenre else userData.movieGenre,
+                        year = if (userData.movieTV == MovieTVFilterConfig.TV) userData.tvYear else userData.movieYear,
                     ),
                 )
             }
@@ -113,9 +129,14 @@ class MovieViewModel @Inject constructor(
             is MovieEvent.OnMovieTVToggled -> {
                 catalogJob?.cancel()
                 _selectedSection.value = null
+                // The feed follows the setting, using that mode's saved filters.
+                viewModelScope.launch { userSettingsRepository.setMovieTV(event.movieTV) }
+            }
+
+            is MovieEvent.OnHomeFilterChanged -> {
                 viewModelScope.launch {
-                    userSettingsRepository.setMovieTV(event.movieTV)
-                    getMovies(event.movieTV)
+                    val type = userSettingsRepository.userSettings.first().movieTV
+                    userSettingsRepository.setHomeFilter(type, event.genre, event.year)
                 }
             }
 
@@ -154,25 +175,43 @@ class MovieViewModel @Inject constructor(
         }
     }
 
+    /** TMDB's genres for the current Movies/TV mode, empty until loaded. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val genres: StateFlow<List<Genre>> = userSettingsRepository.userSettings
+        .map { it.movieTV }
+        .distinctUntilChanged()
+        .flatMapLatest { type ->
+            flow {
+                emit(emptyList())
+                emit(tmdbGenres.get(type))
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     init {
+        // The Home feed follows the mode and its genre/year filters.
         viewModelScope.launch {
-            getMovies(userSettingsRepository.userSettings.first().movieTV)
+            userSettingsRepository.userSettings
+                .map { s ->
+                    if (s.movieTV == MovieTVFilterConfig.TV) Triple(s.movieTV, s.tvGenre, s.tvYear)
+                    else Triple(s.movieTV, s.movieGenre, s.movieYear)
+                }
+                .distinctUntilChanged()
+                .collectLatest { (type, genre, year) -> showFeed(type, genre, year) }
         }
     }
 
-
-    private fun getMovies(type: String) {
-        viewModelScope.launch {
-            repository.getMovies(
-                type = type
-            ).map { pagingData ->
-                pagingData.map { movieEntity ->
-                    movieEntity.toMovie()
-                }
-            }.cachedIn(viewModelScope).collect {
-                _searchedMovies.value = it
+    private suspend fun showFeed(type: String, genre: Int?, year: Int?) {
+        val feed = if (genre == null && year == null) {
+            repository.getMovies(type = type).map { pagingData ->
+                pagingData.map { movieEntity -> movieEntity.toMovie() }
             }
+        } else {
+            Pager(PagingConfig(pageSize = 20)) {
+                DiscoverPagingSource(movieApi, type, genre, year)
+            }.flow
         }
+        feed.cachedIn(viewModelScope).collect { _searchedMovies.value = it }
     }
 
     private fun loadCatalog(section: CatalogSection, forceRefresh: Boolean) {
@@ -215,6 +254,10 @@ data class CatalogUiState(
 data class UserEditableSettings(
     val movieTV: String,
     val useGrid: Boolean,
+    /** TMDB genre id chosen for the current mode, null for Any. */
+    val genre: Int? = null,
+    /** Release year chosen for the current mode, null for Any. */
+    val year: Int? = null,
 )
 
 sealed interface SettingsUiState {

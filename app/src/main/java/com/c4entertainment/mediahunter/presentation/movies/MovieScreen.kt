@@ -26,6 +26,8 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.c4entertainment.mediahunter.MainActivityUiState
 import com.c4entertainment.mediahunter.components.MovieContent
+import com.c4entertainment.mediahunter.components.MovieFilters
+import com.c4entertainment.mediahunter.domain.model.movie_details.Genre
 import com.c4entertainment.mediahunter.domain.model.catalog.ArtistAlbum
 import com.c4entertainment.mediahunter.domain.model.catalog.ArtistRef
 import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
@@ -56,6 +58,7 @@ fun MovieScreen(
     val catalogState by viewModel.catalogState.collectAsStateWithLifecycle()
     val musicChart by viewModel.musicChart.collectAsStateWithLifecycle()
     val telegramBot by viewModel.telegramBot.collectAsStateWithLifecycle()
+    val genres by viewModel.genres.collectAsStateWithLifecycle()
 
     MovieScreen(
         movies = movies,
@@ -70,6 +73,9 @@ fun MovieScreen(
         musicChart = musicChart,
         telegramBot = telegramBot,
         loadArtistAlbums = viewModel::artistAlbums,
+        genres = genres,
+        genre = (settingsState as? SettingsUiState.Success)?.settings?.genre,
+        year = (settingsState as? SettingsUiState.Success)?.settings?.year,
     )
 
 }
@@ -89,6 +95,9 @@ fun MovieScreen(
     musicChart: MusicChart,
     telegramBot: String,
     loadArtistAlbums: suspend (ArtistRef) -> Result<List<ArtistAlbum>>,
+    genres: List<Genre>,
+    genre: Int?,
+    year: Int?,
 ) {
 
     val context = LocalContext.current
@@ -154,6 +163,14 @@ fun MovieScreen(
             onCatalogRefresh = { movieEvent(MovieEvent.OnCatalogRefresh) },
             musicChart = musicChart,
             onMusicChartChange = { movieEvent(MovieEvent.OnMusicChartChanged(it)) },
+            filters = {
+                MovieFilters(
+                    genres = genres,
+                    genre = genre,
+                    year = year,
+                    onChange = { g, y -> movieEvent(MovieEvent.OnHomeFilterChanged(g, y)) },
+                )
+            },
             onCatalogItemClick = { item ->
                 selectedSection?.let { onCatalogItemClick(it, item) }
             },
