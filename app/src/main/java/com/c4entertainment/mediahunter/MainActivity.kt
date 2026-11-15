@@ -78,10 +78,13 @@ class MainActivity : FragmentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        // The splash screen must switch to the app theme before the window is set up;
+        // enableEdgeToEdge touches the window, and doing that first left the starting
+        // theme's action bar drawn over Home's top bar.
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         // Draw behind the system bars; each screen's Scaffold insets its own content.
         enableEdgeToEdge()
-        val splashScreen = installSplashScreen()
 
         var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)
 
