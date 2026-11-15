@@ -3,6 +3,17 @@ package com.c4entertainment.mediahunter.data.network.dto.tv
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
+/** One season with its episodes: `tv/{id}/season/{number}`. */
+@JsonClass(generateAdapter = true)
+data class SeasonDetailsDto(
+    @field:Json(name = "season_number") var seasonNumber: Int? = null,
+    @field:Json(name = "name") var name: String? = null,
+    @field:Json(name = "overview") var overview: String? = null,
+    @field:Json(name = "poster_path") var posterPath: String? = null,
+    @field:Json(name = "air_date") var airDate: String? = null,
+    @field:Json(name = "episodes") var episodes: List<TvEpisodeDto> = listOf(),
+)
+
 @JsonClass(generateAdapter = true)
 data class TvEpisodeDto(
     @field:Json(name = "season_number") var seasonNumber: Int? = null,

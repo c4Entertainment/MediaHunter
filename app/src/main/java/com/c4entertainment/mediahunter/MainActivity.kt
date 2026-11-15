@@ -48,6 +48,8 @@ import androidx.navigation.compose.rememberNavController
 import com.c4entertainment.mediahunter.navigation.Screen
 import com.c4entertainment.mediahunter.presentation.movie_info.MovieDetailsScreen
 import com.c4entertainment.mediahunter.presentation.movie_info.MovieDetailsViewModel
+import com.c4entertainment.mediahunter.presentation.movie_info.SeasonScreen
+import com.c4entertainment.mediahunter.presentation.movie_info.SeasonViewModel
 import com.c4entertainment.mediahunter.presentation.movies.MovieScreen
 import com.c4entertainment.mediahunter.presentation.movies.MovieViewModel
 import com.c4entertainment.mediahunter.presentation.profile.SettingsScreen
@@ -208,6 +210,13 @@ class MainActivity : FragmentActivity() {
                     viewModel = viewModel,
                     navigateBack = { navController.popBackStack() },
                     openTitle = { type, id -> navController.navigate("movie/$type/$id") },
+                    openSeason = { tvId, season -> navController.navigate("season/$tvId/$season") },
+                )
+            }
+            composable("season/{tvId}/{season}") {
+                SeasonScreen(
+                    viewModel = hiltViewModel<SeasonViewModel>(),
+                    navigateBack = { navController.popBackStack() },
                 )
             }
             composable(Screen.SettingsScreen.route) {

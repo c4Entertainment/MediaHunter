@@ -8,7 +8,9 @@ import androidx.paging.PagingData
 import com.c4entertainment.mediahunter.data.cache.MovieDatabase
 import com.c4entertainment.mediahunter.data.cache.entity.movie.MovieEntity
 import com.c4entertainment.mediahunter.data.cache.entity.search.MovieSearchEntity
+import com.c4entertainment.mediahunter.data.mappers.toSeasonDetails
 import com.c4entertainment.mediahunter.data.mappers.toTitleDetails
+import com.c4entertainment.mediahunter.domain.model.movie_details.SeasonDetails
 import com.c4entertainment.mediahunter.domain.model.movie_details.TitleDetails
 import com.c4entertainment.mediahunter.data.network.MovieNetworkMediator
 import com.c4entertainment.mediahunter.data.network.SearchMovieNetworkMediator
@@ -68,6 +70,9 @@ class MovieRepositoryImpl @Inject constructor(
 
     override suspend fun getTitleDetails(id: Int, type: String): Resource<TitleDetails> =
         networkCall { tmDBApi.getMovieDetails(id = id, type = type).toTitleDetails(type) }
+
+    override suspend fun getSeason(tvId: Int, season: Int): Resource<SeasonDetails> =
+        networkCall { tmDBApi.getSeason(id = tvId, season = season).toSeasonDetails(season) }
 
     private inline fun <T> networkCall(call: () -> T): Resource<T> =
         try {

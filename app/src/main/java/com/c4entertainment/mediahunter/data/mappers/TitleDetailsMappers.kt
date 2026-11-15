@@ -1,9 +1,11 @@
 package com.c4entertainment.mediahunter.data.mappers
 
 import com.c4entertainment.mediahunter.data.network.dto.movie_details.MovieDetailsDto
+import com.c4entertainment.mediahunter.data.network.dto.tv.SeasonDetailsDto
 import com.c4entertainment.mediahunter.data.network.dto.tv.TvEpisodeDto
 import com.c4entertainment.mediahunter.domain.model.movie_details.Cast
 import com.c4entertainment.mediahunter.domain.model.movie_details.MovieVideo
+import com.c4entertainment.mediahunter.domain.model.movie_details.SeasonDetails
 import com.c4entertainment.mediahunter.domain.model.movie_details.TitleDetails
 import com.c4entertainment.mediahunter.domain.model.movie_details.TitleSummary
 import com.c4entertainment.mediahunter.domain.model.movie_details.TvEpisode
@@ -97,3 +99,12 @@ fun TvEpisodeDto.toTvEpisode(): TvEpisode? {
     )
 }
 
+
+fun SeasonDetailsDto.toSeasonDetails(number: Int) = SeasonDetails(
+    number = seasonNumber ?: number,
+    name = name ?: "Season $number",
+    overview = overview?.takeIf { it.isNotBlank() },
+    posterPath = posterPath?.takeIf { it.isNotBlank() },
+    airDate = airDate?.takeIf { it.isNotBlank() },
+    episodes = episodes.mapNotNull { it.toTvEpisode() },
+)

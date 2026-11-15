@@ -46,6 +46,7 @@ fun MovieDetailsScreen(
     viewModel: MovieDetailsViewModel,
     navigateBack: () -> Unit,
     openTitle: (type: String, id: Int) -> Unit,
+    openSeason: (tvId: Int, season: Int) -> Unit,
 ) {
     val state = viewModel.state
     val details = state.details
@@ -75,6 +76,7 @@ fun MovieDetailsScreen(
                 onRefresh = viewModel::load,
                 onFindTorrents = findTorrents ?: {},
                 openTitle = openTitle,
+                openSeason = openSeason,
             )
 
             state.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -109,6 +111,7 @@ private fun DetailsList(
     onRefresh: () -> Unit,
     onFindTorrents: () -> Unit,
     openTitle: (type: String, id: Int) -> Unit,
+    openSeason: (tvId: Int, season: Int) -> Unit,
 ) {
     val context = LocalContext.current
     val refreshState = rememberPullToRefreshState()
@@ -166,6 +169,21 @@ private fun DetailsList(
                     EpisodeCard(episode, fallbackImage = details.backdropPath) {
                         context.searchTorrents(details, episode.season, episode.episode)
                     }
+                }
+                detailRow(
+                    key = "seasons",
+                    title = { stringResource(R.string.details_seasons) },
+                    items = details.seasons,
+                    itemKey = { it.number },
+                ) { season ->
+                    MediaCard(
+                        title = stringResource(R.string.season_title, season.number),
+                        imageUrl = (season.posterPath ?: details.posterPath)?.let { TmdbImage.url(TmdbImage.GRID_POSTER, it) },
+                        aspectRatio = 2f / 3f,
+                        subtitle = episodeCountText(season.episodeCount),
+                        onClick = { openSeason(details.id, season.number) },
+                        modifier = Modifier.width(PosterCardWidth),
+                    )
                 }
             }
 

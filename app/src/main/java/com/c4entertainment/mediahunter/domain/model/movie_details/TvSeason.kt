@@ -21,3 +21,13 @@ data class TvEpisode(
     val stillPath: String? = null,
 )
 
+
+/** A season's page: its episodes and what it says about itself. */
+data class SeasonDetails(
+    val number: Int,
+    val name: String,
+    val overview: String?,
+    val posterPath: String?,
+    val airDate: String?,
+    val episodes: List<TvEpisode>,
+)
