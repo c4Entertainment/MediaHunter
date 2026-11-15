@@ -4,9 +4,26 @@ Browse movies, TV shows, anime, music, books and games, then find torrents for e
 
 Media Hunter pulls catalogues from TMDB, AniList, Deezer, Open Library and RAWG. It embeds [TorrentSearch](https://github.com/c4Entertainment/TorrentSearch) to search dozens of torrent sites at once. Searches started from a title carry its IMDb or Kitsu ID, year, season and episode, so you get that release rather than every torrent with a similar name.
 
+## Screenshots
+
+<p>
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="Home" width="240">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" alt="Search" width="240">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Movie details" width="240">
+</p>
+<p>
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" alt="Movie details with release dates" width="240">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" alt="Show details" width="240">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" alt="Season page" width="240">
+</p>
+
+The screenshots show films and series that are free to share: Blender's open movies, public-domain classics and Pioneer One.
+
 ## Download
 
-APKs are on the [Releases](https://github.com/c4Entertainment/MediaHunter/releases) page.
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80">](https://f-droid.org/packages/com.c4entertainment.mediahunter/)
+
+Media Hunter is on its way to F-Droid; the link works once it's accepted. APKs are also on the [Releases](https://github.com/c4Entertainment/MediaHunter/releases) page.
 
 ## Features
 
@@ -44,7 +61,9 @@ TMDB_API_KEY=your_tmdb_key
 RAWG_API_KEY=your_rawg_key
 ```
 
-AniList, Deezer, Open Library and Kitsu need no keys.
+AniList, Deezer, Open Library and Kitsu need no keys. Keys can also be passed as Gradle properties (`-PTMDB_API_KEY=…`) or environment variables, and people can enter their own TMDB and RAWG keys in the app under Settings → API keys.
+
+To sign local release builds with the debug key, add `signReleaseWithDebugKey=true` to `local.properties`; without it, release builds are unsigned (F-Droid signs its own).
 
 Open the project in Android Studio and run the `app` configuration, or use the command line:
 
