@@ -24,6 +24,10 @@ import com.c4entertainment.mediahunter.R
  * The grid card every section shares: an image of the given [aspectRatio]
  * (2:3 posters, 1:1 music, 16:9 games), a title and an optional subtitle.
  * The whole card is the click target.
+ *
+ * Set [reserveTextSpace] in horizontal rows: every card then keeps room for two
+ * title lines and a subtitle line, so the row's height doesn't change as cards
+ * of different text lengths scroll into view.
  */
 @Composable
 fun MediaCard(
@@ -33,6 +37,7 @@ fun MediaCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    reserveTextSpace: Boolean = false,
 ) {
     Column(
         modifier = modifier
@@ -62,10 +67,11 @@ fun MediaCard(
             text = title,
             style = MaterialTheme.typography.titleSmall,
             maxLines = 2,
+            minLines = if (reserveTextSpace) 2 else 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 8.dp),
         )
-        subtitle?.takeIf { it.isNotBlank() }?.let {
+        (subtitle?.takeIf { it.isNotBlank() } ?: " ".takeIf { reserveTextSpace })?.let {
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodySmall,

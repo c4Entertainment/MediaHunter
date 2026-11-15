@@ -187,6 +187,7 @@ private fun DetailsList(
                         subtitle = episodeCountText(season.episodeCount),
                         onClick = { openSeason(details.id, season.number) },
                         modifier = Modifier.width(PosterCardWidth),
+                        reserveTextSpace = true,
                     )
                 }
             }
@@ -219,6 +220,7 @@ private fun DetailsList(
                         aspectRatio = 16f / 9f,
                         onClick = { viewModel.play(key) },
                         modifier = Modifier.fillMaxWidth(),
+                        reserveTextSpace = true,
                     )
                     if (playing) PlayingBadge(Modifier.align(Alignment.TopStart).padding(10.dp))
                 }
@@ -237,6 +239,7 @@ private fun DetailsList(
                     subtitle = title.year,
                     onClick = { openTitle(title.type, title.id) },
                     modifier = Modifier.width(PosterCardWidth),
+                        reserveTextSpace = true,
                 )
             }
 
@@ -258,6 +261,7 @@ fun EpisodeCard(episode: TvEpisode, fallbackImage: String?, onClick: () -> Unit)
         subtitle = formatDate(episode.airDate),
         onClick = onClick,
         modifier = Modifier.width(LandscapeCardWidth),
+                        reserveTextSpace = true,
     )
 }
 

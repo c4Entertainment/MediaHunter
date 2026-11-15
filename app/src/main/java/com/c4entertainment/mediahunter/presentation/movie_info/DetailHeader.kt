@@ -444,10 +444,12 @@ private fun Face(person: Cast, onClick: () -> Unit) {
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
             maxLines = 2,
+            // Every face keeps the same text height, so the row never changes height.
+            minLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 8.dp),
         )
-        person.character?.takeIf { it.isNotBlank() }?.let {
+        (person.character?.takeIf { it.isNotBlank() } ?: " ").let {
             Text(
                 it,
                 style = MaterialTheme.typography.labelSmall,
