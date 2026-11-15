@@ -187,9 +187,7 @@ private fun DeezerTrackDto.toCatalogItem(): CatalogItem {
             .joinToString(" · ")
             .ifEmpty { null },
         imageUrl = album?.coverBig,
-        // Songs are rarely shared alone: search for the album they're on.
-        // A single's album has the song's name, so that still finds it.
-        searchTerms = listOfNotNull(artist, (album?.title ?: title).forTorrentSearch()).joinToString(" "),
+        searchTerms = listOfNotNull(artist, title.forTorrentSearch()).joinToString(" "),
     )
 }
 
