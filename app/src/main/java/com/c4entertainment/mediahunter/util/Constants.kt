@@ -36,6 +36,7 @@ object TmdbImage {
 
     const val GRID_POSTER = "w342"
     const val LIST_BACKDROP = "w780"
+    const val BACKDROP_LARGE = "w1280"
     const val ORIGINAL = "original"
 
     fun url(size: String, path: String?): String = "$BASE/$size/$path"

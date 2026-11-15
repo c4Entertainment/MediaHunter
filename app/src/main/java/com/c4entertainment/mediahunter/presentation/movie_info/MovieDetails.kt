@@ -2,7 +2,6 @@ package com.c4entertainment.mediahunter.presentation.movie_info
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
@@ -34,9 +33,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.c4entertainment.mediahunter.domain.model.movie_details.Cast
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import kotlin.math.roundToInt
 
 @Composable
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -79,59 +75,14 @@ fun MovieDetails(
                             }
 
                             item {
-                                HorizontalDivider(Modifier.padding(top = 8.dp, bottom = 16.dp))
+                                MovieDetailsFacts(movie = movie, details = state.movieDetails)
                             }
 
                             item {
                                 Text(
                                     text = movie.overview,
-                                    Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                                    Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                 )
-                            }
-
-                            val rating: Int = (movie.voteAverage * 10).roundToInt()
-                            if (rating > 0)
-                                item {
-                                    Text(
-                                        text = "Rating: $rating %",
-                                        Modifier.padding(
-                                            start = 8.dp,
-                                            end = 8.dp,
-                                            bottom = 8.dp
-                                        )
-                                    )
-                                }
-
-
-                            val date = movie.releaseDate?.takeIf { it.isNotBlank() }?.let { raw ->
-                                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
-                                    runCatching {
-                                        LocalDate.parse(raw)
-                                            .format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))
-                                    }.getOrNull()
-                                } else raw
-                            }
-
-                            if (date != null) {
-                                item {
-                                    Text(
-                                        text = "Release Date: $date",
-                                        Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-                                    )
-                                }
-                            }
-
-                            state.movieDetails?.genres?.let { genres ->
-                                item {
-                                    Text(
-                                        text = "Genres: ${genres.joinToString { it.name ?: "" }}",
-                                        Modifier.padding(
-                                            start = 8.dp,
-                                            end = 8.dp,
-                                            bottom = 8.dp
-                                        )
-                                    )
-                                }
                             }
                         }
 

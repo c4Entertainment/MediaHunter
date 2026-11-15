@@ -2,8 +2,8 @@ package com.c4entertainment.mediahunter.presentation.movie_info
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,11 +21,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 import com.prajwalch.torrentsearch.TorrentSearch
 import com.prajwalch.torrentsearch.domain.model.SearchTarget
 
@@ -44,6 +46,8 @@ fun MovieDetailsScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val context = LocalContext.current
     var showTvTorrentSheet by remember { mutableStateOf(false) }
+    val pagerState = rememberPagerState { viewModel.tabs.size }
+    val scope = rememberCoroutineScope()
     // The target lets TorrentSearch look up by IMDb ID and hide releases of
     // other titles, years or episodes.
     val searchTorrents = { query: String, target: SearchTarget ->
@@ -68,7 +72,7 @@ fun MovieDetailsScreen(
         floatingActionButton = {
             val movie = state.movie
             // Details tab only, so it never covers the video player.
-            if (movie != null && viewModel.tabIndex.value == 0) {
+            if (movie != null && pagerState.currentPage == 0) {
                 ExtendedFloatingActionButton(
                     text = { Text("Find torrents") },
                     icon = { Icon(Icons.Filled.Download, contentDescription = null) },
@@ -121,17 +125,17 @@ fun MovieDetailsScreen(
         }
 
 
-        val tabIndex = viewModel.tabIndex
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(innerPadding)
         ) {
-            PrimaryTabRow(selectedTabIndex = tabIndex.value!!) {
+            PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
                 viewModel.tabs.forEachIndexed { index, title ->
-                    Tab(text = { Text(title) },
-                        selected = tabIndex.value!! == index,
-                        onClick = { viewModel.updateTabIndex(index) },
+                    Tab(
+                        text = { Text(title) },
+                        selected = pagerState.currentPage == index,
+                        onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
                     )
                 }
             }
@@ -139,37 +143,26 @@ fun MovieDetailsScreen(
             val ytVideos =
                 state.movieDetails?.videos?.results?.filter { videos -> videos.site == "YouTube" }?.reversed()
 
-            when (tabIndex.value) {
-                0 -> MovieDetails(
-                    state = state,
-                    isRefreshing = state.isLoading,
-                    viewModel = viewModel,
-                    id = id,
-                    type = type,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .draggable(
-                            state = viewModel.dragState.value!!,
-                            orientation = Orientation.Horizontal,
-                            onDragStarted = { },
-                            onDragStopped = {
-                                viewModel.updateTabIndexBasedOnSwipe()
-                            }),
-                )
-
-                1 -> MovieVideos(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .draggable(
-                            state = viewModel.dragState.value!!,
-                            orientation = Orientation.Horizontal,
-                            onDragStarted = { },
-                            onDragStopped = {
-                                viewModel.updateTabIndexBasedOnSwipe()
-                            }),
-                    movieVideos = ytVideos,
-                    navigateBack = navigateBack
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+            ) { page ->
+                when (page) {
+                    0 -> MovieDetails(
+                        state = state,
+                        isRefreshing = state.isLoading,
+                        viewModel = viewModel,
+                        id = id,
+                        type = type,
+                        modifier = Modifier.fillMaxSize(),
                     )
+
+                    else -> MovieVideos(
+                        modifier = Modifier.fillMaxSize(),
+                        movieVideos = ytVideos,
+                        navigateBack = navigateBack,
+                    )
+                }
             }
         }
     }
