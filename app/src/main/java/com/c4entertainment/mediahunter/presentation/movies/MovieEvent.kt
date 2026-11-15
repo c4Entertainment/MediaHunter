@@ -14,6 +14,7 @@ sealed class MovieEvent {
     data class OnToggleView(val isGrid: Boolean): MovieEvent()
 
     data class OnCatalogSectionSelected(val section: CatalogSection): MovieEvent()
+    object OnReleasesSelected: MovieEvent()
     object OnCatalogRefresh: MovieEvent()
     data class OnMusicChartChanged(val chart: MusicChart): MovieEvent()
 }

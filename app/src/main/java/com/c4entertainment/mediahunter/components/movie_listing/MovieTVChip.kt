@@ -29,6 +29,8 @@ fun MovieTVChip(
     onSectionSelected: ((CatalogSection) -> Unit)? = null,
     /** Chip order as [HomeSections] ids. */
     order: List<String> = HomeSections.defaultOrder,
+    releasesSelected: Boolean = false,
+    onReleasesSelected: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -39,11 +41,18 @@ fun MovieTVChip(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         order.forEach { id ->
+            if (id == HomeSections.RELEASES) {
+                if (onReleasesSelected != null) Chip(
+                    selected = releasesSelected,
+                    onSelectedChange = onReleasesSelected,
+                ) { Text(text = stringResource(R.string.home_releases)) }
+                return@forEach
+            }
             when (val section = HomeSections.catalogSection(id)) {
                 null -> {
                     val isMovie = id == MovieTVFilterConfig.MOVIE
                     Chip(
-                        selected = selectedSection == null && movieTV == id,
+                        selected = selectedSection == null && !releasesSelected && movieTV == id,
                         onSelectedChange = if (isMovie) toggleMovie else toggleTV,
                     ) {
                         Text(text = stringResource(if (isMovie) R.string.home_movies else R.string.home_tv_shows))

@@ -406,6 +406,7 @@ private fun AppearanceSettings(
 private fun homeSectionLabel(id: String): String = when (id) {
     MovieTVFilterConfig.MOVIE -> stringResource(R.string.home_movies)
     MovieTVFilterConfig.TV -> stringResource(R.string.home_tv_shows)
+    HomeSections.RELEASES -> stringResource(R.string.home_releases)
     else -> HomeSections.catalogSection(id)?.labelRes?.let { stringResource(it) } ?: id
 }
 

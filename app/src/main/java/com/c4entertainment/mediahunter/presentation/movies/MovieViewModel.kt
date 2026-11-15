@@ -92,6 +92,10 @@ class MovieViewModel @Inject constructor(
     private val _selectedSection = MutableStateFlow<CatalogSection?>(null)
     val selectedSection: StateFlow<CatalogSection?> = _selectedSection.asStateFlow()
 
+    /** Whether Home shows the Releases calendar instead of a feed or catalog. */
+    private val _releasesSelected = MutableStateFlow(false)
+    val releasesSelected: StateFlow<Boolean> = _releasesSelected.asStateFlow()
+
     private val _catalogState = MutableStateFlow(CatalogUiState())
     val catalogState: StateFlow<CatalogUiState> = _catalogState.asStateFlow()
 
@@ -119,13 +123,17 @@ class MovieViewModel @Inject constructor(
                 )
             }
             val chosen = _selectedSection.value
-            if (chosen != null) {
+            if (_releasesSelected.value) {
+                // Releases was picked before the settings arrived.
+            } else if (chosen != null) {
                 if (chosen.isMusic) loadCatalog(chosen, forceRefresh = false)
             } else {
                 // Nothing picked yet: open on the section chosen in Settings.
                 val start = settings.startOn
                 val startSection = HomeSections.catalogSection(start)
-                if (startSection != null) {
+                if (start == HomeSections.RELEASES) {
+                    _releasesSelected.value = true
+                } else if (startSection != null) {
                     _selectedSection.value = startSection
                     loadCatalog(startSection, forceRefresh = false)
                 } else if (start != null && start != settings.movieTV) {
@@ -144,6 +152,7 @@ class MovieViewModel @Inject constructor(
         when (event) {
             is MovieEvent.OnMovieTVToggled -> {
                 catalogJob?.cancel()
+                _releasesSelected.value = false
                 _selectedSection.value = null
                 // The feed follows the setting, using that mode's saved filters.
                 viewModelScope.launch { userSettingsRepository.setMovieTV(event.movieTV) }
@@ -163,7 +172,14 @@ class MovieViewModel @Inject constructor(
                 }
             }
 
+            MovieEvent.OnReleasesSelected -> {
+                catalogJob?.cancel()
+                _selectedSection.value = null
+                _releasesSelected.value = true
+            }
+
             is MovieEvent.OnCatalogSectionSelected -> {
+                _releasesSelected.value = false
                 _selectedSection.value = event.section
                 loadCatalog(event.section, forceRefresh = false)
             }

@@ -8,8 +8,11 @@ import com.c4entertainment.mediahunter.util.MovieTVFilterConfig
  * [CatalogSection] names. The chip order and the start section are stored as these ids.
  */
 object HomeSections {
+    /** Id of the Releases calendar, which is a section but not a [CatalogSection]. */
+    const val RELEASES = "Releases"
+
     val defaultOrder: List<String> =
-        listOf(MovieTVFilterConfig.MOVIE, MovieTVFilterConfig.TV) + CatalogSection.entries.map { it.name }
+        listOf(MovieTVFilterConfig.MOVIE, MovieTVFilterConfig.TV, RELEASES) + CatalogSection.entries.map { it.name }
 
     /** [stored] without unknown ids, with any missing section appended, so every chip always shows. */
     fun resolveOrder(stored: List<String>): List<String> {

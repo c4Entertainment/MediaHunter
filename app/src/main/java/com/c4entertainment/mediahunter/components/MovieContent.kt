@@ -25,6 +25,8 @@ import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
 import com.c4entertainment.mediahunter.domain.model.movie.Movie
 import com.c4entertainment.mediahunter.presentation.movies.CatalogUiState
+import com.c4entertainment.mediahunter.presentation.releases.ReleasesContent
+import com.c4entertainment.mediahunter.util.MovieTVFilterConfig
 import com.c4entertainment.mediahunter.presentation.movies.catalog.CatalogContent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +38,7 @@ fun MovieContent(
     toggleMovie: () -> Unit,
     toggleTV: () -> Unit,
     useGrid: Boolean,
-    onClickMovie: (Int) -> Unit,
+    onClickMovie: (Int, String) -> Unit,
     // Catalog sections (Music, Books...) are Home-only; leave these out elsewhere.
     selectedSection: CatalogSection? = null,
     catalogState: CatalogUiState = CatalogUiState(),
@@ -49,6 +51,8 @@ fun MovieContent(
     /** Shown above the Movies/TV list, e.g. genre and year chips. */
     filters: (@Composable () -> Unit)? = null,
     sectionOrder: List<String> = HomeSections.defaultOrder,
+    releasesSelected: Boolean = false,
+    onReleasesSelected: (() -> Unit)? = null,
 ) {
     val isRefreshing = content.loadState.refresh is LoadState.Loading
     val pullToRefreshState = rememberPullToRefreshState()
@@ -63,7 +67,14 @@ fun MovieContent(
             selectedSection = selectedSection,
             onSectionSelected = onSectionSelected,
             order = sectionOrder,
+            releasesSelected = releasesSelected,
+            onReleasesSelected = onReleasesSelected,
         )
+
+        if (releasesSelected) {
+            ReleasesContent(onMovieClick = { onClickMovie(it, MovieTVFilterConfig.MOVIE) })
+            return@Column
+        }
 
         if (selectedSection != null) {
             CatalogContent(
@@ -123,14 +134,14 @@ fun MovieContent(
                         GridContent(
                             movies = content,
                             onNavigateToMovieDetail = { id ->
-                                onClickMovie(id)
+                                onClickMovie(id, moviesOrTV)
                             }
                         )
                     else
                         ListContent(
                             movies = content,
                             onNavigateToMovieDetail = { id ->
-                                onClickMovie(id)
+                                onClickMovie(id, moviesOrTV)
                             }
                         )
                 }

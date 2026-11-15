@@ -60,6 +60,7 @@ fun MovieScreen(
     val musicChart by viewModel.musicChart.collectAsStateWithLifecycle()
     val telegramBot by viewModel.telegramBot.collectAsStateWithLifecycle()
     val genres by viewModel.genres.collectAsStateWithLifecycle()
+    val releasesSelected by viewModel.releasesSelected.collectAsStateWithLifecycle()
 
     MovieScreen(
         movies = movies,
@@ -77,6 +78,7 @@ fun MovieScreen(
         sectionOrder = (settingsState as? SettingsUiState.Success)?.settings?.sectionOrder
             ?: HomeSections.defaultOrder,
         genres = genres,
+        releasesSelected = releasesSelected,
         genre = (settingsState as? SettingsUiState.Success)?.settings?.genre,
         year = (settingsState as? SettingsUiState.Success)?.settings?.year,
     )
@@ -102,6 +104,7 @@ fun MovieScreen(
     genres: List<Genre>,
     genre: Int?,
     year: Int?,
+    releasesSelected: Boolean = false,
 ) {
 
     val context = LocalContext.current
@@ -134,7 +137,7 @@ fun MovieScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            MovieScreenTopBar(isGridView = useGrid, showViewToggle = selectedSection == null, toggleView = {
+            MovieScreenTopBar(isGridView = useGrid, showViewToggle = selectedSection == null && !releasesSelected, toggleView = {
                 movieEvent(MovieEvent.OnToggleView(!useGrid))
             }, onSettingsClicked = {
                 navigate(Screen.SettingsScreen.route)
@@ -158,7 +161,9 @@ fun MovieScreen(
             toggleTV = {
                 movieEvent(MovieEvent.OnMovieTVToggled(MovieTVFilterConfig.TV))
             },
-            onClickMovie = { id -> navigate("movie/${movieTV}/${id}") },
+            onClickMovie = { id, type -> navigate("movie/${type}/${id}") },
+            releasesSelected = releasesSelected,
+            onReleasesSelected = { movieEvent(MovieEvent.OnReleasesSelected) },
             selectedSection = selectedSection,
             catalogState = catalogState,
             onSectionSelected = {
