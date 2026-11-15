@@ -1,0 +1,75 @@
+name: 'release'
+
+# Builds a signed APK and publishes a GitHub release for each version tag (v1.2.3).
+# F-Droid builds the same tags itself and signs with its own key.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to release, e.g. v1.0.0'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Decode the signing key
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+        run: echo "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/release.keystore"
+
+      # Signing is passed as Gradle properties, so build.gradle.kts carries no
+      # signing config of its own (F-Droid strips those).
+      - name: Build the release APK
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          RAWG_API_KEY: ${{ secrets.RAWG_API_KEY }}
+          KEYSTORE_PW: ${{ secrets.KEYSTORE_PW }}
+          ALIAS: ${{ secrets.ALIAS }}
+          ALIAS_PW: ${{ secrets.ALIAS_PW }}
+        run: |
+          ./gradlew :app:assembleRelease \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/release.keystore" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PW" \
+            -Pandroid.injected.signing.key.alias="$ALIAS" \
+            -Pandroid.injected.signing.key.password="$ALIAS_PW"
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${TAG#v}"
+          code=$(sed -nE 's/^ *versionCode *= *([0-9]+).*/\1/p' app/build.gradle.kts | head -1)
+          notes="fastlane/metadata/android/en-US/changelogs/${code}.txt"
+          [ -f "$notes" ] || { echo "Media Hunter $version" > "$RUNNER_TEMP/notes.txt"; notes="$RUNNER_TEMP/notes.txt"; }
+          apk="$RUNNER_TEMP/MediaHunter-${TAG}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$apk"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$apk" --clobber
+          else
+            gh release create "$TAG" "$apk" --title "Media Hunter $version" --notes-file "$notes" --verify-tag --latest
+          fi
+
+      - name: Remove the signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.keystore"
