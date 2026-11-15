@@ -7,6 +7,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.c4entertainment.mediahunter.components.movie_listing.TitleStatusViewModel
+import com.c4entertainment.mediahunter.components.movie_listing.rememberTitleStatus
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,7 +24,10 @@ import com.c4entertainment.mediahunter.domain.model.movie.Movie
 fun GridContent(
     movies: LazyPagingItems<Movie>,
     onNavigateToMovieDetail: (Int) -> Unit,
+    /** "movie" or "tv"; decides which status the cards show. */
+    type: String = "movie",
 ) {
+    val statusViewModel = hiltViewModel<TitleStatusViewModel>()
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 128.dp),
     ) {
@@ -36,6 +42,7 @@ fun GridContent(
             item?.let { movie ->
                 MovieGridItem(
                     movie = movie,
+                    status = rememberTitleStatus(statusViewModel, movie.id, type),
                     onClick = { onNavigateToMovieDetail(movie.id) },
                 )
             }

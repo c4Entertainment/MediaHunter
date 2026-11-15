@@ -142,6 +142,7 @@ fun SearchScreen(
                         movies = movies,
                         sectionLabel = stringResource(active.section.labelRes),
                         useGrid = useGrid,
+                        type = active.section.tmdbType ?: "movie",
                         onClick = { id ->
                             navController.navigate("movie/${active.section.tmdbType}/$id")
                         },
@@ -316,13 +317,14 @@ private fun MovieResults(
     movies: LazyPagingItems<Movie>,
     sectionLabel: String,
     useGrid: Boolean,
+    type: String,
     onClick: (Int) -> Unit,
 ) {
     val refresh = movies.loadState.refresh
     when {
         movies.itemCount > 0 ->
-            if (useGrid) GridContent(movies = movies, onNavigateToMovieDetail = onClick)
-            else ListContent(movies = movies, onNavigateToMovieDetail = onClick)
+            if (useGrid) GridContent(movies = movies, onNavigateToMovieDetail = onClick, type = type)
+            else ListContent(movies = movies, onNavigateToMovieDetail = onClick, type = type)
 
         refresh is LoadState.Error -> ErrorMessage(onRetry = movies::retry)
 

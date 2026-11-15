@@ -133,6 +133,7 @@ fun MovieContent(
                     if (useGrid)
                         GridContent(
                             movies = content,
+                            type = moviesOrTV,
                             onNavigateToMovieDetail = { id ->
                                 onClickMovie(id, moviesOrTV)
                             }
@@ -140,6 +141,7 @@ fun MovieContent(
                     else
                         ListContent(
                             movies = content,
+                            type = moviesOrTV,
                             onNavigateToMovieDetail = { id ->
                                 onClickMovie(id, moviesOrTV)
                             }

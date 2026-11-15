@@ -2,6 +2,7 @@ package com.c4entertainment.mediahunter.data.repository
 
 import com.c4entertainment.mediahunter.data.mappers.toReleases
 import com.c4entertainment.mediahunter.data.network.api.TMDBMovieAPI
+import com.c4entertainment.mediahunter.domain.model.TitleStatus
 import com.c4entertainment.mediahunter.domain.model.movie_details.Release
 import com.c4entertainment.mediahunter.domain.model.movie_details.ReleaseEntry
 import kotlinx.coroutines.CancellationException
@@ -60,15 +61,10 @@ class ReleasesRepository @Inject constructor(
             val lastPage = response.totalPages ?: page
         } while (++page <= minOf(lastPage, MAX_PAGES))
 
-        val permits = Semaphore(CONCURRENCY)
         return coroutineScope {
             movies.values.map { movie ->
                 async {
-                    val releases = synchronized(cache) { cache[movie.id] }
-                        ?: permits.withPermit { api.getReleaseDates(movie.id) }
-                            .results.firstOrNull { it.country == "US" }
-                            ?.releaseDates.orEmpty().toReleases()
-                            .also { synchronized(cache) { cache[movie.id] = it } }
+                    val releases = usReleases(movie.id)
                     releases.mapNotNull { release ->
                         val date = runCatching { LocalDate.parse(release.date) }.getOrNull()
                         if (release.kind !in kinds || date == null || date < start || date > end) null
@@ -87,6 +83,41 @@ class ReleasesRepository @Inject constructor(
                 }
             }.awaitAll().flatten()
         }.sortedWith(compareBy<ReleaseEntry> { it.date }.thenByDescending { it.popularity })
+    }
+
+    /** Shared by the calendar and the status pills, so both stay within [CONCURRENCY] requests. */
+    private val gate = Semaphore(CONCURRENCY)
+
+    private suspend fun usReleases(id: Int): List<Release> =
+        synchronized(cache) { cache[id] }
+            ?: gate.withPermit { api.getReleaseDates(id) }
+                .results.firstOrNull { it.country == "US" }
+                ?.releaseDates.orEmpty().toReleases()
+                .also { synchronized(cache) { cache[id] = it } }
+
+    private val tvCache = object : LinkedHashMap<Int, TitleStatus?>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, TitleStatus?>) = size > CACHE_SIZE
+    }
+
+    /** The status already known for a card, without a request. */
+    fun cachedStatus(id: Int, type: String): TitleStatus? =
+        if (type == "tv") synchronized(tvCache) { tvCache[id] }
+        else synchronized(cache) { cache[id] }?.let { TitleStatus.forMovie(it, LocalDate.now()) }
+
+    /** The status pill for a title, or null when it can't be worked out (offline, unlabelled status). */
+    suspend fun status(id: Int, type: String): TitleStatus? = try {
+        if (type == "tv") {
+            cachedStatus(id, type) ?: gate.withPermit { api.getTvStatus(id) }.let { tv ->
+                val next = tv.nextEpisodeToAir?.airDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                TitleStatus.forTv(tv.status, next)?.also { synchronized(tvCache) { tvCache[id] = it } }
+            }
+        } else {
+            TitleStatus.forMovie(usReleases(id), LocalDate.now())
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        null
     }
 
     private val Release.Kind.tmdbTypes: List<Int>

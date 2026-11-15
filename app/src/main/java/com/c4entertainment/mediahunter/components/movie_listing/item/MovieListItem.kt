@@ -23,12 +23,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.c4entertainment.mediahunter.R
+import com.c4entertainment.mediahunter.components.StatusPill
+import com.c4entertainment.mediahunter.domain.model.TitleStatus
 import com.c4entertainment.mediahunter.domain.model.movie.Movie
 import com.c4entertainment.mediahunter.util.TmdbImage
 
 /** Backdrop row for the list view, shaped and padded to sit with the grid cards. */
 @Composable
-fun MovieListItem(movie: Movie, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun MovieListItem(movie: Movie, onClick: () -> Unit, modifier: Modifier = Modifier, status: TitleStatus? = null) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -50,6 +52,9 @@ fun MovieListItem(movie: Movie, onClick: () -> Unit, modifier: Modifier = Modifi
                 .aspectRatio(16f / 9f),
             error = painterResource(id = R.drawable.baseline_image_24),
         )
+        if (status != null) {
+            StatusPill(status, Modifier.align(Alignment.TopStart).padding(8.dp))
+        }
         // Scrim so the white title stays readable on any backdrop.
         Row(
             modifier = Modifier

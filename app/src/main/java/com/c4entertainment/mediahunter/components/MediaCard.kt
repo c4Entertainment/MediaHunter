@@ -3,6 +3,7 @@ package com.c4entertainment.mediahunter.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,8 @@ fun MediaCard(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     reserveTextSpace: Boolean = false,
+    /** Drawn over the image, e.g. a status pill. */
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -62,6 +65,7 @@ fun MediaCard(
                 error = painterResource(id = R.drawable.baseline_image_24),
                 modifier = Modifier.matchParentSize(),
             )
+            overlay?.invoke(this)
         }
         Text(
             text = title,

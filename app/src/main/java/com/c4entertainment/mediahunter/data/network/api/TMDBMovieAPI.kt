@@ -69,6 +69,14 @@ interface TMDBMovieAPI {
         @Query("api_key") apiKey: String = API_KEY,
     ): MoviesResponse
 
+    /** Just a show's status and next episode, for the status pill on its card. */
+    @GET("tv/{id}")
+    suspend fun getTvStatus(
+        @Path("id") id: Int,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = API_KEY,
+    ): MovieDetailsDto
+
     /** A movie's release dates and certifications in every country. */
     @GET("movie/{id}/release_dates")
     suspend fun getReleaseDates(

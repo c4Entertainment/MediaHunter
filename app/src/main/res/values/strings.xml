@@ -221,6 +221,17 @@
     <string name="home_section_order_summary">Order of the chips on Home</string>
     <string name="home_movies">Movies</string>
     <string name="home_tv_shows">TV Shows</string>
+    <string name="status_coming">Coming %1$s</string>
+    <string name="status_announced">Announced</string>
+    <string name="status_in_cinemas">In cinemas</string>
+    <string name="status_digital_soon">Digital %1$s</string>
+    <string name="status_digital">Digital</string>
+    <string name="status_on_disc">On disc</string>
+    <string name="status_new_episode">New ep %1$s</string>
+    <string name="status_returning">Returning</string>
+    <string name="status_ended">Ended</string>
+    <string name="status_cancelled">Cancelled</string>
+    <string name="status_upcoming">Upcoming</string>
     <string name="home_releases">Releases</string>
     <string name="releases_this_week">This week</string>
     <string name="releases_next_week">Next week</string>
