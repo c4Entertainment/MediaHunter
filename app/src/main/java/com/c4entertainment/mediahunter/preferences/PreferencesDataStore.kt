@@ -43,10 +43,10 @@ constructor(app: MediaHunterApp) {
             sort = preferences[SORT] ?: false,
             showVideos = preferences[SHOW_VIDEOS] ?: true,
             movieTV = preferences[MOVIE_TV_FILTER] ?: MovieTVFilterConfig.MOVIE,
-            movieTVBackup = preferences[MOVIE_TV_BACKUP_FILTER] ?: MovieTVFilterConfig.MOVIE,
             musicRegion = preferences[MUSIC_REGION] ?: "Worldwide",
             musicGenre = preferences[MUSIC_GENRE],
             telegramBot = preferences[TELEGRAM_BOT] ?: "",
+            recentSearches = preferences[RECENT_SEARCHES]?.split(RECENT_SEPARATOR)?.filter { it.isNotEmpty() }.orEmpty(),
         )
     }
 
@@ -114,14 +114,6 @@ constructor(app: MediaHunterApp) {
         }
     }
 
-    fun setMovieTvFilterBackup(movieTvFilter: String) {
-        scope.launch {
-            datastore.edit { preferences ->
-                preferences[MOVIE_TV_BACKUP_FILTER] = movieTvFilter
-            }
-        }
-    }
-
     fun setMusicChart(region: String, genre: String?) {
         scope.launch {
             datastore.edit { preferences ->
@@ -139,6 +131,27 @@ constructor(app: MediaHunterApp) {
         }
     }
 
+    /** Puts [query] first in the recent searches, dropping a duplicate (ignoring case) and anything past the limit. */
+    fun addRecentSearch(query: String) {
+        val clean = query.replace(RECENT_SEPARATOR, " ").trim()
+        if (clean.isEmpty()) return
+        scope.launch {
+            datastore.edit { preferences ->
+                val current = preferences[RECENT_SEARCHES]?.split(RECENT_SEPARATOR).orEmpty()
+                val updated = (listOf(clean) + current.filterNot { it.equals(clean, ignoreCase = true) })
+                    .filter { it.isNotEmpty() }
+                    .take(MAX_RECENT_SEARCHES)
+                preferences[RECENT_SEARCHES] = updated.joinToString(RECENT_SEPARATOR)
+            }
+        }
+    }
+
+    fun clearRecentSearches() {
+        scope.launch {
+            datastore.edit { preferences -> preferences.remove(RECENT_SEARCHES) }
+        }
+    }
+
     companion object {
         const val SETTINGS_DATASTORE_NAME = "media_hunter_settings"
 
@@ -150,10 +163,12 @@ constructor(app: MediaHunterApp) {
         private val SORT = booleanPreferencesKey("sort_key")
         private val SHOW_VIDEOS = booleanPreferencesKey("show_videos_key")
         private val MOVIE_TV_FILTER = stringPreferencesKey("movie_tv_filter_key")
-        private val MOVIE_TV_BACKUP_FILTER = stringPreferencesKey("movie_tv_backup_filter_key")
 
         private val MUSIC_REGION = stringPreferencesKey("music_region_key")
         private val MUSIC_GENRE = stringPreferencesKey("music_genre_key")
         private val TELEGRAM_BOT = stringPreferencesKey("telegram_bot_key")
+        private val RECENT_SEARCHES = stringPreferencesKey("recent_searches_key")
+        private const val RECENT_SEPARATOR = "\n"
+        private const val MAX_RECENT_SEARCHES = 10
     }
 }

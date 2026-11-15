@@ -29,11 +29,12 @@ data class UserSettings(
     val sort: Boolean,
     val showVideos: Boolean,
     val movieTV: String,
-    val movieTVBackup: String,
     /** [com.c4entertainment.mediahunter.domain.model.catalog.MusicRegion] name. */
     val musicRegion: String = "Worldwide",
     /** [com.c4entertainment.mediahunter.domain.model.catalog.MusicGenre] name, or null for all genres. */
     val musicGenre: String? = null,
     /** Telegram username (no "@") of the music bot searches are sent to; empty means the chat picker. */
     val telegramBot: String = "",
+    /** Queries run on the Search screen, newest first. */
+    val recentSearches: List<String> = emptyList(),
 )

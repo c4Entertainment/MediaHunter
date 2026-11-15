@@ -60,16 +60,20 @@ class UserSettingsRepositoryImpl @Inject constructor(
         preferencesDataSource.setMovieTvFilter(movieTV)
     }
 
-    override suspend fun setMovieTVBackup(movieTV: String) {
-        preferencesDataSource.setMovieTvFilterBackup(movieTV)
-    }
-
     override suspend fun setMusicChart(region: String, genre: String?) {
         preferencesDataSource.setMusicChart(region, genre)
     }
 
     override suspend fun setTelegramBot(bot: String) {
         preferencesDataSource.setTelegramBot(bot)
+    }
+
+    override suspend fun addRecentSearch(query: String) {
+        preferencesDataSource.addRecentSearch(query)
+    }
+
+    override suspend fun clearRecentSearches() {
+        preferencesDataSource.clearRecentSearches()
     }
 
 

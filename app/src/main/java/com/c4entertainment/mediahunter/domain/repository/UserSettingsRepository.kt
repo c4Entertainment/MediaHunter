@@ -42,11 +42,14 @@ interface UserSettingsRepository {
 
     suspend fun setMovieTV(movieTV: String)
 
-    suspend fun setMovieTVBackup(movieTV: String)
-
     /** Remembers the music chart filters; [genre] null means all genres. */
     suspend fun setMusicChart(region: String, genre: String?)
 
     /** Remembers the Telegram music bot username; empty clears it. */
     suspend fun setTelegramBot(bot: String)
+
+    /** Remembers a Search screen query, newest first, without duplicates. */
+    suspend fun addRecentSearch(query: String)
+
+    suspend fun clearRecentSearches()
 }

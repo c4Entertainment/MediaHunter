@@ -71,4 +71,13 @@
     <string name="telegram_music_bot_save">Save</string>
     <string name="telegram_music_bot_clear">Clear</string>
     <string name="telegram_music_bot_cancel">Cancel</string>
+    <string name="search_hint">Search movies, music, books and more</string>
+    <string name="search_back">Back</string>
+    <string name="search_clear">Clear search text</string>
+    <string name="search_recent_title">Recent searches</string>
+    <string name="search_recent_clear">Clear</string>
+    <string name="search_recent_empty">Your recent searches will show up here</string>
+    <string name="search_recent_item">Search again for %1$s</string>
+    <string name="search_no_results">No results in %1$s \u2014 try another category</string>
+    <string name="search_results_caption">Results for \u201c%1$s\u201d \u00b7 %2$s</string>
 </resources>

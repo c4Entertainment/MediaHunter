@@ -41,9 +41,6 @@ fun MovieContent(
     onSectionSelected: ((CatalogSection) -> Unit)? = null,
     onCatalogRefresh: () -> Unit = {},
     onCatalogItemClick: (CatalogItem) -> Unit = {},
-    catalogSearchOpen: Boolean = false,
-    onCatalogSearch: (query: String, immediate: Boolean) -> Unit = { _, _ -> },
-    onCloseCatalogSearch: () -> Unit = {},
     musicChart: MusicChart = MusicChart(),
     onMusicChartChange: (MusicChart) -> Unit = {},
 ) {
@@ -67,9 +64,6 @@ fun MovieContent(
                 state = catalogState,
                 onRefresh = onCatalogRefresh,
                 onItemClick = onCatalogItemClick,
-                searchOpen = catalogSearchOpen,
-                onSearch = onCatalogSearch,
-                onCloseSearch = onCloseCatalogSearch,
                 musicChart = musicChart,
                 onMusicChartChange = onMusicChartChange,
             )

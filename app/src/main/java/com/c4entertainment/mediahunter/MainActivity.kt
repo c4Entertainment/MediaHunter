@@ -37,6 +37,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -49,7 +51,8 @@ import com.c4entertainment.mediahunter.presentation.movies.MovieViewModel
 import com.c4entertainment.mediahunter.presentation.profile.SettingsScreen
 import com.c4entertainment.mediahunter.presentation.profile.SettingsViewModel
 import com.c4entertainment.mediahunter.presentation.search.SearchScreen
-import com.c4entertainment.mediahunter.presentation.search.SearchViewModel
+import com.c4entertainment.mediahunter.presentation.search.SearchSection
+import com.c4entertainment.mediahunter.presentation.search.UnifiedSearchViewModel
 import com.c4entertainment.mediahunter.ui.theme.MediaHunterTheme
 import com.c4entertainment.mediahunter.util.DarkThemeConfig
 import com.c4entertainment.mediahunter.util.ConnectivityObserver
@@ -202,8 +205,16 @@ class MainActivity : FragmentActivity() {
                     navigateBack = { navController.popBackStack() },
                 )
             }
-            composable(Screen.SearchScreen.route) {
-                val viewModel = hiltViewModel<SearchViewModel>()
+            composable(
+                route = Screen.SearchScreen.route,
+                arguments = listOf(
+                    navArgument("section") {
+                        type = NavType.StringType
+                        defaultValue = SearchSection.Movies.name
+                    },
+                ),
+            ) {
+                val viewModel = hiltViewModel<UnifiedSearchViewModel>()
                 SearchScreen(
                     viewModel = viewModel,
                     navController = navController,

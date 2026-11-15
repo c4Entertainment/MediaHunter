@@ -1,11 +1,6 @@
 package com.c4entertainment.mediahunter.presentation.movies.catalog
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -14,21 +9,10 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.ui.graphics.Color
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -97,75 +81,14 @@ private fun CatalogSection.sourceLabel(chart: MusicChart): String = when (this) 
         CatalogSection.Anime -> "Trending on AniList"
     }
 
-private val CatalogSection.sourceName: String
+/** The data source's name, for captions. */
+val CatalogSection.sourceName: String
     get() = when (this) {
         CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Artists -> "Deezer"
         CatalogSection.Books -> "Open Library"
         CatalogSection.Games -> "RAWG.io"
         CatalogSection.Anime -> "AniList"
     }
-
-private val CatalogSection.searchHint: String
-    get() = when (this) {
-        CatalogSection.Albums -> "Search albums or artists"
-        CatalogSection.Songs -> "Search songs or artists"
-        CatalogSection.Artists -> "Search artists"
-        CatalogSection.Books -> "Search books or authors"
-        CatalogSection.Games -> "Search games"
-        CatalogSection.Anime -> "Search anime"
-    }
-
-/** Styled like the Movies/TV [com.c4entertainment.mediahunter.presentation.search.SearchWidget]; searches as you type. */
-@Composable
-private fun CatalogSearchField(
-    section: CatalogSection,
-    initialQuery: String,
-    onSearch: (query: String, immediate: Boolean) -> Unit,
-    onClose: () -> Unit,
-) {
-    var text by rememberSaveable(section) { mutableStateOf(initialQuery) }
-    val focusRequester = remember { FocusRequester() }
-    val keyboard = LocalSoftwareKeyboardController.current
-    LaunchedEffect(section) { focusRequester.requestFocus() }
-
-    OutlinedTextField(
-        value = text,
-        onValueChange = {
-            text = it
-            onSearch(it, false)
-        },
-        placeholder = { Text(section.searchHint) },
-        singleLine = true,
-        shape = RoundedCornerShape(32.dp),
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-        trailingIcon = {
-            // Like SearchWidget: the first tap clears the text, the next closes search.
-            IconButton(onClick = {
-                if (text.isNotEmpty()) {
-                    text = ""
-                    onSearch("", true)
-                } else {
-                    onClose()
-                }
-            }) {
-                Icon(Icons.Default.Close, contentDescription = "Clear or close search")
-            }
-        },
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = {
-            keyboard?.hide()
-            onSearch(text, true)
-        }),
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .focusRequester(focusRequester),
-    )
-}
 
 private val CatalogSection.imageAspectRatio: Float
     get() = when (this) {
@@ -182,22 +105,11 @@ fun CatalogContent(
     onRefresh: () -> Unit,
     onItemClick: (CatalogItem) -> Unit,
     modifier: Modifier = Modifier,
-    searchOpen: Boolean = false,
-    onSearch: (query: String, immediate: Boolean) -> Unit = { _, _ -> },
-    onCloseSearch: () -> Unit = {},
     musicChart: MusicChart = MusicChart(),
     onMusicChartChange: (MusicChart) -> Unit = {},
 ) = Column(modifier) {
-    if (searchOpen) {
-        CatalogSearchField(
-            section = section,
-            initialQuery = state.query.orEmpty(),
-            onSearch = onSearch,
-            onClose = onCloseSearch,
-        )
-    }
     // Above the grid so it stays on screen for empty and error states too.
-    if (section.isMusic && state.query == null) {
+    if (section.isMusic) {
         MusicChartFilters(section, musicChart, onMusicChartChange)
     }
     when {
@@ -215,29 +127,45 @@ fun CatalogContent(
             onRefresh = onRefresh,
             modifier = Modifier.fillMaxSize(),
         ) {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = if (section == CatalogSection.Games) 160.dp else 128.dp),
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = state.query?.let { "Results for “$it” · ${section.sourceName}" }
-                            ?: section.sourceLabel(musicChart),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    )
-                }
-                items(state.items, key = { it.id }) { item ->
-                    CatalogGridItem(
-                        item = item,
-                        aspectRatio = section.imageAspectRatio,
-                        modifier = Modifier
-                            .padding(start = 1.dp, end = 1.dp, bottom = 5.dp)
-                            .clickable { onItemClick(item) },
-                    )
-                }
-            }
+            CatalogResultsGrid(
+                section = section,
+                items = state.items,
+                caption = section.sourceLabel(musicChart),
+                onItemClick = onItemClick,
+            )
+        }
+    }
+}
+
+/** The catalog grid shared by Home and Search: a [caption] row above one tile per item. */
+@Composable
+fun CatalogResultsGrid(
+    section: CatalogSection,
+    items: List<CatalogItem>,
+    caption: String,
+    onItemClick: (CatalogItem) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = if (section == CatalogSection.Games) 160.dp else 128.dp),
+        modifier = modifier.fillMaxSize(),
+    ) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Text(
+                text = caption,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
+        items(items, key = { it.id }) { item ->
+            CatalogGridItem(
+                item = item,
+                aspectRatio = section.imageAspectRatio,
+                modifier = Modifier
+                    .padding(start = 1.dp, end = 1.dp, bottom = 5.dp)
+                    .clickable { onItemClick(item) },
+            )
         }
     }
 }

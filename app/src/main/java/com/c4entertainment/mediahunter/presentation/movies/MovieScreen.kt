@@ -1,7 +1,6 @@
 package com.c4entertainment.mediahunter.presentation.movies
 
 import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -11,11 +10,6 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -28,20 +22,12 @@ import com.c4entertainment.mediahunter.MainActivityUiState
 import com.c4entertainment.mediahunter.components.MovieContent
 import com.c4entertainment.mediahunter.domain.model.catalog.ArtistAlbum
 import com.c4entertainment.mediahunter.domain.model.catalog.ArtistRef
-import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
 import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
-import com.c4entertainment.mediahunter.presentation.movies.catalog.ArtistTorrentSearchSheet
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
-import com.c4entertainment.mediahunter.presentation.movies.catalog.AnimeTorrentSearchSheet
-import com.c4entertainment.mediahunter.presentation.movies.catalog.MusicActionSheet
-import com.c4entertainment.mediahunter.domain.model.external.ExternalApps
-import com.c4entertainment.mediahunter.presentation.movies.catalog.searchTarget
-import com.prajwalch.torrentsearch.domain.model.Category
-import kotlinx.coroutines.launch
 import com.c4entertainment.mediahunter.domain.model.movie.Movie
-import com.c4entertainment.mediahunter.presentation.movie_info.torrentQuery
-import com.c4entertainment.mediahunter.presentation.movies.catalog.torrentCategory
 import com.c4entertainment.mediahunter.navigation.Screen
+import com.c4entertainment.mediahunter.presentation.movies.catalog.CatalogItemActionHost
+import com.c4entertainment.mediahunter.presentation.search.SearchSection
 import com.c4entertainment.mediahunter.util.MovieTVFilterConfig
 import com.prajwalch.torrentsearch.TorrentSearch
 
@@ -100,20 +86,12 @@ fun MovieScreen(
 ) {
 
     val context = LocalContext.current
-    // Searching a catalog section (Music, Books...) happens in place on Home.
-    var catalogSearchOpen by rememberSaveable { mutableStateOf(false) }
-    val closeCatalogSearch = {
-        catalogSearchOpen = false
-        movieEvent(MovieEvent.OnCatalogSearch(""))
-    }
-    BackHandler(enabled = catalogSearchOpen && selectedSection != null, onBack = closeCatalogSearch)
-    // Anime opens an episode picker; the search then targets that exact episode.
-    var animeSheetItem by remember { mutableStateOf<CatalogItem?>(null) }
-    // Artists open a sheet with their discography and albums.
-    var artistSheetItem by remember { mutableStateOf<CatalogItem?>(null) }
-    var musicSheetItem by remember { mutableStateOf<CatalogItem?>(null) }
-    val scope = rememberCoroutineScope()
 
+    CatalogItemActionHost(
+        telegramBot = telegramBot,
+        resolveKitsuId = resolveKitsuId,
+        loadArtistAlbums = loadArtistAlbums,
+    ) { onCatalogItemClick ->
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -126,12 +104,8 @@ fun MovieScreen(
             }, onTorrentSearchClicked = {
                 context.startActivity(TorrentSearch.homeIntent(context))
             }, onSearchClicked = {
-                if (selectedSection != null) {
-                    catalogSearchOpen = true
-                    return@MovieScreenTopBar
-                }
-                movieEvent(MovieEvent.OnMovieTVBackupStored(movieTV))
-                navigate(Screen.SearchScreen.route)
+                // Search opens on whatever Home is showing.
+                navigate(Screen.SearchScreen.createRoute(SearchSection.forHome(selectedSection, movieTV)))
             }, scrollBehavior = scrollBehavior
             )
         },
@@ -142,114 +116,25 @@ fun MovieScreen(
             moviesOrTV = movieTV,
             content = movies,
             toggleMovie = {
-                catalogSearchOpen = false
                 movieEvent(MovieEvent.OnMovieTVToggled(MovieTVFilterConfig.MOVIE))
             },
             toggleTV = {
-                catalogSearchOpen = false
                 movieEvent(MovieEvent.OnMovieTVToggled(MovieTVFilterConfig.TV))
             },
             onClickMovie = { id -> navigate("movie/${movieTV}/${id}") },
             selectedSection = selectedSection,
             catalogState = catalogState,
             onSectionSelected = {
-                catalogSearchOpen = false
                 movieEvent(MovieEvent.OnCatalogSectionSelected(it))
             },
             onCatalogRefresh = { movieEvent(MovieEvent.OnCatalogRefresh) },
             musicChart = musicChart,
             onMusicChartChange = { movieEvent(MovieEvent.OnMusicChartChanged(it)) },
-            catalogSearchOpen = catalogSearchOpen,
-            onCatalogSearch = { query, immediate -> movieEvent(MovieEvent.OnCatalogSearch(query, immediate)) },
-            onCloseCatalogSearch = closeCatalogSearch,
             onCatalogItemClick = { item ->
-                val section = selectedSection ?: return@MovieContent
-                if (item.anime != null) {
-                    animeSheetItem = item
-                    return@MovieContent
-                }
-                if (item.artist != null) {
-                    artistSheetItem = item
-                    return@MovieContent
-                }
-                // Only sections with downloader apps get the choice.
-                if (ExternalApps.forSection(section).isNotEmpty()) {
-                    musicSheetItem = item
-                    return@MovieContent
-                }
-                context.startActivity(
-                    TorrentSearch.searchIntent(
-                        context,
-                        torrentQuery(item.searchTerms),
-                        section.torrentCategory,
-                    )
-                )
+                selectedSection?.let { onCatalogItemClick(it, item) }
             },
         )
     }
-
-    val musicItem = musicSheetItem
-    val musicSection = selectedSection
-    if (musicItem != null && musicSection != null) {
-        MusicActionSheet(
-            item = musicItem,
-            apps = ExternalApps.forSection(musicSection, telegramBot),
-            telegramBot = telegramBot,
-            onSearchTorrents = {
-                musicSheetItem = null
-                context.startActivity(
-                    TorrentSearch.searchIntent(
-                        context,
-                        torrentQuery(musicItem.searchTerms),
-                        musicSection.torrentCategory,
-                    )
-                )
-            },
-            onDismiss = { musicSheetItem = null },
-        )
-    }
-
-    val sheetItem = animeSheetItem
-    val sheetAnime = sheetItem?.anime
-    if (sheetItem != null && sheetAnime != null) {
-        AnimeTorrentSearchSheet(
-            item = sheetItem,
-            anime = sheetAnime,
-            onSearch = { query, episode ->
-                animeSheetItem = null
-                scope.launch {
-                    // Without a Kitsu ID, Torrentio is skipped but the other
-                    // providers still search and get filtered.
-                    val kitsuId = resolveKitsuId(sheetAnime.aniListId)
-                    context.startActivity(
-                        TorrentSearch.searchIntent(
-                            context,
-                            query,
-                            Category.Anime,
-                            target = sheetAnime.searchTarget(kitsuId, episode),
-                        )
-                    )
-                }
-            },
-            onDismiss = { animeSheetItem = null },
-        )
-    }
-
-    val sheetArtist = artistSheetItem?.artist
-    if (sheetArtist != null) {
-        ArtistTorrentSearchSheet(
-            artist = sheetArtist,
-            imageUrl = artistSheetItem?.imageUrl,
-            telegramBot = telegramBot,
-            loadAlbums = { loadArtistAlbums(sheetArtist) },
-            onSearch = { query ->
-                artistSheetItem = null
-                context.startActivity(
-                    TorrentSearch.searchIntent(context, torrentQuery(query), Category.Music)
-                )
-            },
-            onDismiss = { artistSheetItem = null },
-        )
     }
 
     LaunchedEffect(key1 = movies.loadState) {
