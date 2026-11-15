@@ -70,17 +70,11 @@ fun MediaggCard(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 MediaggIcon(Modifier.size(48.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.mediagg_from_us),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = stringResource(R.string.mediagg_name),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.mediagg_name),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
+                )
             }
             Text(
                 text = stringResource(R.string.mediagg_pitch),
@@ -102,7 +96,7 @@ fun MediaggCard(modifier: Modifier = Modifier) {
 fun MediaggSettingsRow() {
     val context = LocalContext.current
     ListItem(
-        headlineContent = { Text(stringResource(R.string.mediagg_more_from_us)) },
+        headlineContent = { Text(stringResource(R.string.mediagg_name)) },
         supportingContent = { Text(stringResource(R.string.mediagg_summary)) },
         leadingContent = { MediaggIcon(Modifier.size(24.dp)) },
         trailingContent = { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null) },
