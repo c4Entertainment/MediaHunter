@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.c4entertainment.mediahunter.R
+import com.c4entertainment.mediahunter.util.TmdbImage
 import com.c4entertainment.mediahunter.domain.model.movie.Movie
 import com.c4entertainment.mediahunter.components.movie_listing.item.MovieListItemInfo
 
@@ -42,7 +43,7 @@ fun MovieDetailsPoster(movie: Movie, modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.surfaceTint
         ) {
             AsyncImage(
-                model = "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
+                model = TmdbImage.url(TmdbImage.ORIGINAL, movie.backdropPath),
                 contentDescription = movie.title,
                 modifier = Modifier
                     .fillMaxSize()
@@ -80,7 +81,7 @@ fun MovieDetailsPoster(movie: Movie, modifier: Modifier = Modifier) {
         }
 
         AsyncImage(
-            model = "https://image.tmdb.org/t/p/original/${movie.posterPath}",
+            model = TmdbImage.url(TmdbImage.ORIGINAL, movie.posterPath),
             contentDescription = movie.title,
             modifier = Modifier
                 .height(150.dp)

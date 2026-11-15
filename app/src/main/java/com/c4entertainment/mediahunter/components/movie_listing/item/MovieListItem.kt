@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.c4entertainment.mediahunter.R
 import com.c4entertainment.mediahunter.domain.model.movie.Movie
+import com.c4entertainment.mediahunter.util.TmdbImage
 
 /** Backdrop row for the list view, shaped and padded to sit with the grid cards. */
 @Composable
@@ -41,7 +42,7 @@ fun MovieListItem(movie: Movie, onClick: () -> Unit, modifier: Modifier = Modifi
         contentAlignment = Alignment.BottomCenter
     ) {
         AsyncImage(
-            model = "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
+            model = TmdbImage.url(TmdbImage.LIST_BACKDROP, movie.backdropPath),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
