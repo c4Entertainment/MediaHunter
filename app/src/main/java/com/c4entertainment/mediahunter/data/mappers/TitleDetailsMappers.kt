@@ -116,9 +116,12 @@ fun SeasonDetailsDto.toSeasonDetails(number: Int) = SeasonDetails(
  * The earliest US cinema, digital and disc dates. A limited release counts as
  * cinemas only when there's no wide one.
  */
-private fun MovieDetailsDto.usReleases(): List<Release> {
-    val dates = releaseDates?.results?.firstOrNull { it.country == "US" }?.releaseDates.orEmpty()
-    fun earliest(vararg types: Int) = dates
+private fun MovieDetailsDto.usReleases(): List<Release> =
+    releaseDates?.results?.firstOrNull { it.country == "US" }?.releaseDates.orEmpty().toReleases()
+
+/** The earliest theatrical (limited if none), digital and physical date of one country's [ReleaseDateDto]s. */
+fun List<ReleaseDateDto>.toReleases(): List<Release> {
+    fun earliest(vararg types: Int) = this
         .filter { it.type?.let { type -> type in types } == true }
         .mapNotNull { it.releaseDate?.take(10)?.takeIf { d -> d.length == 10 } }
         .minOrNull()

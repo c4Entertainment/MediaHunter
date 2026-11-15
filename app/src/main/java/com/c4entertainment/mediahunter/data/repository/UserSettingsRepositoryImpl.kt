@@ -88,6 +88,10 @@ class UserSettingsRepositoryImpl @Inject constructor(
         preferencesDataSource.setRawgApiKey(key.trim())
     }
 
+    override suspend fun setReleaseKinds(kinds: Set<String>) {
+        preferencesDataSource.setReleaseKinds(kinds)
+    }
+
     override suspend fun addRecentSearch(query: String) {
         preferencesDataSource.addRecentSearch(query)
     }

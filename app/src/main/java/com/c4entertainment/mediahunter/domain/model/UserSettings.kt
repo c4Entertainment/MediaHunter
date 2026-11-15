@@ -48,6 +48,8 @@ data class UserSettings(
     val startOn: String? = null,
     /** Home's chip order as [HomeSections] ids; always lists every section. */
     val sectionOrder: List<String> = HomeSections.defaultOrder,
+    /** Release kinds the Releases calendar shows, as [com.c4entertainment.mediahunter.domain.model.movie_details.Release.Kind] names. */
+    val releaseKinds: Set<String> = setOf("Digital", "Physical"),
     /** Queries run on the Search screen, newest first. */
     val recentSearches: List<String> = emptyList(),
 )

@@ -5,6 +5,7 @@ import com.c4entertainment.mediahunter.data.network.apiresponses.GenreListRespon
 import com.c4entertainment.mediahunter.data.network.apiresponses.MoviesResponse
 import com.c4entertainment.mediahunter.data.network.dto.movie_details.MovieDetails2Dto
 import com.c4entertainment.mediahunter.data.network.dto.movie_details.MovieDetailsDto
+import com.c4entertainment.mediahunter.data.network.dto.movie_details.ReleaseDatesDto
 import com.c4entertainment.mediahunter.data.network.dto.tv.SeasonDetailsDto
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -51,6 +52,29 @@ interface TMDBMovieAPI {
         @Query("language") language: String = "en-US",
         @Query("api_key") apiKey: String = API_KEY,
     ): MoviesResponse
+
+    /**
+     * Movies with a release of the given [releaseTypes] (pipe-separated TMDB type ids) in [region]
+     * between the two yyyy-MM-dd dates; the date filters apply to those release types.
+     */
+    @GET("discover/movie")
+    suspend fun discoverReleases(
+        @Query("region") region: String = "US",
+        @Query("with_release_type") releaseTypes: String,
+        @Query("release_date.gte") from: String,
+        @Query("release_date.lte") to: String,
+        @Query("sort_by") sortBy: String = "popularity.desc",
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = API_KEY,
+    ): MoviesResponse
+
+    /** A movie's release dates and certifications in every country. */
+    @GET("movie/{id}/release_dates")
+    suspend fun getReleaseDates(
+        @Path("id") id: Int,
+        @Query("api_key") apiKey: String = API_KEY,
+    ): ReleaseDatesDto
 
     /** Everything the Details page shows in one call; see [detailsAppend]. */
     @GET("{type}/{id}")

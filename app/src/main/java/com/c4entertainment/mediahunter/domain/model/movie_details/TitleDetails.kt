@@ -53,3 +53,15 @@ data class TitleSummary(
 data class Release(val kind: Kind, /** yyyy-MM-dd */ val date: String) {
     enum class Kind { Theatrical, Digital, Physical }
 }
+
+/** One line of the Releases calendar: [title] reaching [kind] on [date]. */
+data class ReleaseEntry(
+    val id: Int,
+    val title: String,
+    val posterPath: String?,
+    val backdropPath: String?,
+    val overview: String?,
+    val year: String?,
+    val kind: Release.Kind,
+    val date: java.time.LocalDate,
+)

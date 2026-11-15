@@ -57,6 +57,7 @@ constructor(app: MediaHunterApp) {
             telegramBot = preferences[TELEGRAM_BOT] ?: "",
             tmdbApiKey = preferences[TMDB_API_KEY] ?: "",
             rawgApiKey = preferences[RAWG_API_KEY] ?: "",
+            releaseKinds = preferences[RELEASE_KINDS] ?: setOf("Digital", "Physical"),
             recentSearches = preferences[RECENT_SEARCHES]?.split(RECENT_SEPARATOR)?.filter { it.isNotEmpty() }.orEmpty(),
         )
     }
@@ -162,6 +163,12 @@ constructor(app: MediaHunterApp) {
         }
     }
 
+    fun setReleaseKinds(kinds: Set<String>) {
+        scope.launch {
+            datastore.edit { preferences -> preferences[RELEASE_KINDS] = kinds }
+        }
+    }
+
     fun setTelegramBot(bot: String) {
         scope.launch {
             datastore.edit { preferences ->
@@ -230,6 +237,7 @@ constructor(app: MediaHunterApp) {
         private val TELEGRAM_BOT = stringPreferencesKey("telegram_bot_key")
         private val TMDB_API_KEY = stringPreferencesKey("tmdb_api_key")
         private val RAWG_API_KEY = stringPreferencesKey("rawg_api_key")
+        private val RELEASE_KINDS = stringSetPreferencesKey("release_kinds_key")
         private val RECENT_SEARCHES = stringPreferencesKey("recent_searches_key")
         private const val RECENT_SEPARATOR = "\n"
         private const val MAX_RECENT_SEARCHES = 10

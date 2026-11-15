@@ -63,6 +63,9 @@ interface UserSettingsRepository {
     /** Remembers the user's own RAWG API key; blank clears it. */
     suspend fun setRawgApiKey(key: String)
 
+    /** Remembers which release kinds the Releases calendar shows. */
+    suspend fun setReleaseKinds(kinds: Set<String>)
+
     /** Remembers a Search screen query, newest first, without duplicates. */
     suspend fun addRecentSearch(query: String)
 
