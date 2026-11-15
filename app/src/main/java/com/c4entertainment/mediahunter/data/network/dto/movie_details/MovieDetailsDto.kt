@@ -83,6 +83,10 @@ data class CountryReleaseDatesDto(
 @JsonClass(generateAdapter = true)
 data class ReleaseDateDto(
     @field:Json(name = "certification") var certification: String? = null,
+    /** 1 premiere, 2 limited, 3 theatrical, 4 digital, 5 physical, 6 TV. */
+    @field:Json(name = "type") var type: Int? = null,
+    /** ISO date-time, e.g. 2026-07-17T00:00:00.000Z. */
+    @field:Json(name = "release_date") var releaseDate: String? = null,
 )
 
 /** A show's ratings per country (append_to_response=content_ratings). */

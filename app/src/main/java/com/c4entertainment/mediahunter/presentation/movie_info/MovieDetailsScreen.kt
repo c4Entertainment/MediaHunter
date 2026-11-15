@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.c4entertainment.mediahunter.R
 import com.c4entertainment.mediahunter.components.ErrorMessage
 import com.c4entertainment.mediahunter.components.MediaCard
+import com.c4entertainment.mediahunter.domain.model.movie_details.Release
 import com.c4entertainment.mediahunter.domain.model.movie_details.TitleDetails
 import com.c4entertainment.mediahunter.domain.model.movie_details.TvEpisode
 import com.c4entertainment.mediahunter.util.Constants.VIDEO_ID
@@ -117,6 +118,7 @@ private fun DetailsList(
     val refreshState = rememberPullToRefreshState()
     val barRoom = detailBarRoom()
     val facts = buildList {
+        addAll(releaseFacts(details))
         val directorLabel = if (details.isTv) R.string.details_created_by else R.string.details_director
         details.directors.takeIf { it.isNotEmpty() }?.let { add(stringResource(directorLabel) to it.joinToString(", ")) }
         details.writers.takeIf { it.isNotEmpty() }?.let { add(stringResource(R.string.details_writers) to it.joinToString(", ")) }
@@ -277,3 +279,62 @@ fun formatDate(date: String?): String? =
 
 @Composable
 fun episodeCountText(count: Int) = pluralStringResource(R.plurals.episode_count, count, count)
+
+/**
+ * Status and release dates, first in the facts: for torrents the digital and
+ * disc dates matter most, and an upcoming date says why nothing turns up yet.
+ */
+@Composable
+private fun releaseFacts(details: TitleDetails): List<Pair<String, String>> = buildList {
+    statusLabel(details.status)?.let { add(stringResource(R.string.details_status) to it) }
+    if (details.isTv) {
+        formatDate(details.releaseDate)?.let { add(stringResource(R.string.details_first_aired) to it) }
+        val next = details.nextEpisode
+        if (next != null) {
+            val date = formatDate(next.airDate) ?: stringResource(R.string.details_date_tba)
+            add(stringResource(R.string.details_next_episode) to
+                stringResource(R.string.details_episode_on, next.season, next.episode, date))
+        } else if (details.status in setOf("Ended", "Canceled")) {
+            formatDate(details.lastAirDate)?.let { add(stringResource(R.string.details_last_aired) to it) }
+        }
+    } else if (details.releases.isNotEmpty()) {
+        details.releases.forEach { release ->
+            val label = when (release.kind) {
+                Release.Kind.Theatrical -> R.string.details_release_cinemas
+                Release.Kind.Digital -> R.string.details_release_digital
+                Release.Kind.Physical -> R.string.details_release_disc
+            }
+            formatDate(release.date, markUpcoming = true)?.let { add(stringResource(label) to it) }
+        }
+    } else {
+        formatDate(details.releaseDate, markUpcoming = true)?.let { add(stringResource(R.string.details_release) to it) }
+    }
+}
+
+@Composable
+private fun statusLabel(status: String?): String? = when (status) {
+    null -> null
+    "Released" -> stringResource(R.string.details_status_released)
+    "Post Production" -> stringResource(R.string.details_status_post_production)
+    "In Production" -> stringResource(R.string.details_status_in_production)
+    "Planned" -> stringResource(R.string.details_status_planned)
+    "Rumored" -> stringResource(R.string.details_status_rumored)
+    "Canceled" -> stringResource(R.string.details_status_canceled)
+    "Returning Series" -> stringResource(R.string.details_status_returning)
+    "Ended" -> stringResource(R.string.details_status_ended)
+    "Pilot" -> stringResource(R.string.details_status_pilot)
+    else -> status
+}
+
+/** "17 Jul 2026" in the reader's locale; "… (upcoming)" for a future date when asked. */
+@Composable
+private fun formatDate(isoDate: String?, markUpcoming: Boolean = false): String? {
+    val date = isoDate?.takeIf { it.length >= 10 }
+        ?.let { runCatching { java.time.LocalDate.parse(it.take(10)) }.getOrNull() } ?: return null
+    val text = date.format(
+        java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM)
+    )
+    return if (markUpcoming && date.isAfter(java.time.LocalDate.now())) {
+        stringResource(R.string.details_date_upcoming, text)
+    } else text
+}

@@ -11,6 +11,10 @@ data class TitleDetails(
     val releaseDate: String,
     val lastAirDate: String?,
     val inProduction: Boolean,
+    /** TMDB's status, e.g. "Released", "Post Production", "Returning Series", "Ended". */
+    val status: String?,
+    /** US release dates by kind, earliest of each; empty for shows. */
+    val releases: List<Release>,
     val tagline: String?,
     val overview: String?,
     val posterPath: String?,
@@ -44,3 +48,8 @@ data class TitleSummary(
     val posterPath: String?,
     val year: String?,
 )
+
+/** When a movie reaches cinemas, digital stores or disc. */
+data class Release(val kind: Kind, /** yyyy-MM-dd */ val date: String) {
+    enum class Kind { Theatrical, Digital, Physical }
+}

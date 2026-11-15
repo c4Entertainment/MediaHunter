@@ -336,7 +336,7 @@ fun DetailFacts(genres: List<String>, facts: List<Pair<String, String>>, modifie
                     label,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.width(76.dp),
+                    modifier = Modifier.width(96.dp),
                 )
                 Text(value, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
             }

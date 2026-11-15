@@ -8,6 +8,7 @@ import com.c4entertainment.mediahunter.domain.model.movie_details.MovieVideo
 import com.c4entertainment.mediahunter.domain.model.movie_details.SeasonDetails
 import com.c4entertainment.mediahunter.domain.model.movie_details.TitleDetails
 import com.c4entertainment.mediahunter.domain.model.movie_details.TitleSummary
+import com.c4entertainment.mediahunter.domain.model.movie_details.Release
 import com.c4entertainment.mediahunter.domain.model.movie_details.TvEpisode
 import com.c4entertainment.mediahunter.domain.model.movie_details.TvSeason
 
@@ -26,6 +27,8 @@ fun MovieDetailsDto.toTitleDetails(type: String): TitleDetails {
         releaseDate = (if (isTv) firstAirDate else releaseDate) ?: "",
         lastAirDate = lastAirDate?.takeIf { it.isNotBlank() },
         inProduction = inProduction == true,
+        status = status?.takeIf { it.isNotBlank() },
+        releases = if (isTv) emptyList() else usReleases(),
         tagline = tagline?.takeIf { it.isNotBlank() },
         overview = overview?.takeIf { it.isNotBlank() },
         posterPath = posterPath?.takeIf { it.isNotBlank() },
@@ -108,3 +111,20 @@ fun SeasonDetailsDto.toSeasonDetails(number: Int) = SeasonDetails(
     airDate = airDate?.takeIf { it.isNotBlank() },
     episodes = episodes.mapNotNull { it.toTvEpisode() },
 )
+
+/**
+ * The earliest US cinema, digital and disc dates. A limited release counts as
+ * cinemas only when there's no wide one.
+ */
+private fun MovieDetailsDto.usReleases(): List<Release> {
+    val dates = releaseDates?.results?.firstOrNull { it.country == "US" }?.releaseDates.orEmpty()
+    fun earliest(vararg types: Int) = dates
+        .filter { it.type?.let { type -> type in types } == true }
+        .mapNotNull { it.releaseDate?.take(10)?.takeIf { d -> d.length == 10 } }
+        .minOrNull()
+    return listOfNotNull(
+        (earliest(3) ?: earliest(2))?.let { Release(Release.Kind.Theatrical, it) },
+        earliest(4)?.let { Release(Release.Kind.Digital, it) },
+        earliest(5)?.let { Release(Release.Kind.Physical, it) },
+    )
+}
