@@ -21,7 +21,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,12 +52,16 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.c4entertainment.mediahunter.R
 import com.c4entertainment.mediahunter.components.Chip
+import com.c4entertainment.mediahunter.components.LoadingListPlaceholders
+import com.c4entertainment.mediahunter.components.LoadingPlaceholders
+import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.mediahunter.components.movie_listing.PagingDataErrorWidget
 import com.c4entertainment.mediahunter.components.movie_listing.view.GridContent
 import com.c4entertainment.mediahunter.components.movie_listing.view.ListContent
 import com.c4entertainment.mediahunter.domain.model.movie.Movie
 import com.c4entertainment.mediahunter.presentation.movies.catalog.CatalogItemActionHost
 import com.c4entertainment.mediahunter.presentation.movies.catalog.CatalogResultsGrid
+import com.c4entertainment.mediahunter.presentation.movies.catalog.imageAspectRatio
 import com.c4entertainment.mediahunter.presentation.movies.catalog.sourceName
 
 /** One search box over every section; the chips pick where the query runs. */
@@ -122,7 +125,7 @@ fun SearchScreen(
                     )
 
                     // Typed, but the debounce hasn't started a search yet.
-                    active.isBlank -> LoadingIndicator()
+                    active.isBlank -> LoadingPlaceholders()
 
                     active.section.tmdbType != null -> MovieResults(
                         movies = movies,
@@ -136,7 +139,10 @@ fun SearchScreen(
                     else -> {
                         val catalog = active.section.catalog
                         when (val result = catalogResult) {
-                            null, CatalogSearchResult.Loading -> LoadingIndicator()
+                            null, CatalogSearchResult.Loading -> LoadingPlaceholders(
+                                aspectRatio = catalog?.imageAspectRatio ?: (2f / 3f),
+                                minCellSize = if (catalog == CatalogSection.Games) 160.dp else 128.dp,
+                            )
                             is CatalogSearchResult.Error -> PagingDataErrorWidget(
                                 retry = viewModel::retry,
                                 errorMessage = result.message,
@@ -312,14 +318,7 @@ private fun MovieResults(
         // Before the first load, paging reports NotLoading with no items;
         // only an exhausted source means there really are no results.
         movies.loadState.append.endOfPaginationReached -> NoResults(sectionLabel)
-        else -> LoadingIndicator()
-    }
-}
-
-@Composable
-private fun LoadingIndicator() {
-    Box(Modifier.fillMaxSize()) {
-        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        else -> if (useGrid) LoadingPlaceholders() else LoadingListPlaceholders()
     }
 }
 

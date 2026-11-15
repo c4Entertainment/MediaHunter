@@ -77,7 +77,7 @@ fun MovieContent(
         ) {
 
             if (content.loadState.refresh is LoadState.Loading) {
-//                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                if (useGrid) LoadingPlaceholders() else LoadingListPlaceholders()
             } else if (content.itemCount == 0) {
                 if (content.loadState.refresh is LoadState.Error) {
                     PagingDataErrorWidget(

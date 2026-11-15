@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.c4entertainment.mediahunter.R
+import com.c4entertainment.mediahunter.components.LoadingPlaceholders
 import com.c4entertainment.mediahunter.components.movie_listing.PagingDataErrorWidget
 import com.c4entertainment.mediahunter.components.movie_listing.PagingDataNoResultsWidget
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
@@ -90,7 +90,7 @@ val CatalogSection.sourceName: String
         CatalogSection.Anime -> "AniList"
     }
 
-private val CatalogSection.imageAspectRatio: Float
+val CatalogSection.imageAspectRatio: Float
     get() = when (this) {
         CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Artists -> 1f
         CatalogSection.Games -> 16f / 9f
@@ -113,9 +113,10 @@ fun CatalogContent(
         MusicChartFilters(section, musicChart, onMusicChartChange)
     }
     when {
-        state.items.isEmpty() && state.isLoading -> Box(Modifier.fillMaxSize()) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        }
+        state.items.isEmpty() && state.isLoading -> LoadingPlaceholders(
+            aspectRatio = section.imageAspectRatio,
+            minCellSize = if (section == CatalogSection.Games) 160.dp else 128.dp,
+        )
 
         state.items.isEmpty() && state.error != null ->
             PagingDataErrorWidget(retry = onRefresh, errorMessage = state.error)
