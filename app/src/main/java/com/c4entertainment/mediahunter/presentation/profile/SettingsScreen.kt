@@ -1,5 +1,6 @@
 package com.c4entertainment.mediahunter.presentation.profile
 
+import com.c4entertainment.mediahunter.components.MediaggSettingsRow
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -287,6 +288,7 @@ fun SettingsScreen(
                 leadingContent = { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null) },
                 modifier = Modifier.clickable { context.openUrl("$SOURCE_URL/issues") },
             )
+            MediaggSettingsRow()
         }
     }
 }

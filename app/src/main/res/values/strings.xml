@@ -119,6 +119,13 @@
     <string name="details_created_by">Created by</string>
     <string name="details_writers">Writers</string>
     <string name="details_studios">Studios</string>
+    <string name="mediagg_name">Mediagg</string>
+    <string name="mediagg_from_us">From the makers of Media Hunter</string>
+    <string name="mediagg_pitch">Watch films and series from your own Jellyfin, Plex or Emby server, and request new ones through Radarr, Sonarr and Seerr. Music, podcasts and audiobooks too.</string>
+    <string name="mediagg_get">Get Mediagg</string>
+    <string name="mediagg_open">Open Mediagg</string>
+    <string name="mediagg_more_from_us">More from us: Mediagg</string>
+    <string name="mediagg_summary">Music, podcasts, audiobooks and video from your own media server</string>
     <string name="details_status">Status</string>
     <string name="details_release">Release</string>
     <string name="details_release_cinemas">Cinemas</string>

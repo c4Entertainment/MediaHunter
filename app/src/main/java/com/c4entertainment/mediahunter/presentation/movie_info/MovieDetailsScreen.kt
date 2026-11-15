@@ -1,5 +1,6 @@
 package com.c4entertainment.mediahunter.presentation.movie_info
 
+import com.c4entertainment.mediahunter.components.MediaggCard
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
@@ -162,6 +163,9 @@ private fun DetailsList(
                 item(key = "overview") { DetailOverview(overview) }
             }
             item(key = "facts") { DetailFacts(genres = details.genres, facts = facts) }
+            item(key = "mediagg") {
+                MediaggCard(Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
+            }
 
             if (details.isTv) {
                 detailRow(

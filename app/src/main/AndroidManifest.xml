@@ -6,6 +6,7 @@
 
     <!-- Package visibility for ExternalApps (domain/model/external): one line per registered app. -->
     <queries>
+        <package android:name="app.mediagg" />
         <package android:name="com.deniscerri.ytdl" />
         <package android:name="org.telegram.messenger" />
         <package android:name="org.telegram.messenger.web" />
