@@ -64,6 +64,14 @@ class UserSettingsRepositoryImpl @Inject constructor(
         preferencesDataSource.setMusicChart(region, genre)
     }
 
+    override suspend fun setStartOn(section: String?) {
+        preferencesDataSource.setStartOn(section)
+    }
+
+    override suspend fun setSectionOrder(order: List<String>) {
+        preferencesDataSource.setSectionOrder(order)
+    }
+
     override suspend fun setHomeFilter(type: String, genre: Int?, year: Int?) {
         preferencesDataSource.setHomeFilter(type, genre, year)
     }

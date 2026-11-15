@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.c4entertainment.mediahunter.MediaHunterApp
+import com.c4entertainment.mediahunter.domain.model.HomeSections
 import com.c4entertainment.mediahunter.domain.model.UserSettings
 import com.c4entertainment.mediahunter.util.DarkThemeConfig
 import com.c4entertainment.mediahunter.util.MovieTVFilterConfig
@@ -49,6 +50,10 @@ constructor(app: MediaHunterApp) {
             movieYear = preferences[MOVIE_YEAR],
             tvGenre = preferences[TV_GENRE],
             tvYear = preferences[TV_YEAR],
+            startOn = preferences[START_ON],
+            sectionOrder = HomeSections.resolveOrder(
+                preferences[SECTION_ORDER]?.split(",")?.filter { it.isNotEmpty() }.orEmpty()
+            ),
             telegramBot = preferences[TELEGRAM_BOT] ?: "",
             recentSearches = preferences[RECENT_SEARCHES]?.split(RECENT_SEPARATOR)?.filter { it.isNotEmpty() }.orEmpty(),
         )
@@ -127,6 +132,23 @@ constructor(app: MediaHunterApp) {
         }
     }
 
+    fun setStartOn(section: String?) {
+        scope.launch {
+            datastore.edit { preferences ->
+                if (section != null) preferences[START_ON] = section else preferences.remove(START_ON)
+            }
+        }
+    }
+
+    fun setSectionOrder(order: List<String>) {
+        scope.launch {
+            datastore.edit { preferences ->
+                if (order.isEmpty()) preferences.remove(SECTION_ORDER)
+                else preferences[SECTION_ORDER] = order.joinToString(",")
+            }
+        }
+    }
+
     fun setHomeFilter(type: String, genre: Int?, year: Int?) {
         val genreKey = if (type == MovieTVFilterConfig.TV) TV_GENRE else MOVIE_GENRE
         val yearKey = if (type == MovieTVFilterConfig.TV) TV_YEAR else MOVIE_YEAR
@@ -185,6 +207,8 @@ constructor(app: MediaHunterApp) {
         private val MOVIE_YEAR = intPreferencesKey("movie_year_key")
         private val TV_GENRE = intPreferencesKey("tv_genre_key")
         private val TV_YEAR = intPreferencesKey("tv_year_key")
+        private val START_ON = stringPreferencesKey("start_on_key")
+        private val SECTION_ORDER = stringPreferencesKey("section_order_key")
         private val TELEGRAM_BOT = stringPreferencesKey("telegram_bot_key")
         private val RECENT_SEARCHES = stringPreferencesKey("recent_searches_key")
         private const val RECENT_SEPARATOR = "\n"

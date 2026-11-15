@@ -40,6 +40,10 @@ data class UserSettings(
     val movieYear: Int? = null,
     val tvGenre: Int? = null,
     val tvYear: Int? = null,
+    /** Section Home opens on at app start: a [HomeSections] id, or null to keep the last Movies/TV choice. */
+    val startOn: String? = null,
+    /** Home's chip order as [HomeSections] ids; always lists every section. */
+    val sectionOrder: List<String> = HomeSections.defaultOrder,
     /** Queries run on the Search screen, newest first. */
     val recentSearches: List<String> = emptyList(),
 )

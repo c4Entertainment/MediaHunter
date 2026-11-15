@@ -25,6 +25,18 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.RadioButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.fillMaxWidth
+import com.c4entertainment.mediahunter.domain.model.HomeSections
+import com.c4entertainment.mediahunter.util.MovieTVFilterConfig
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -170,6 +182,17 @@ fun SettingsScreen(
             }
 
             HorizontalDivider()
+            SectionTitle(stringResource(R.string.settings_home))
+            if (settings != null) {
+                HomeSettings(
+                    settings = settings,
+                    onLayoutChange = viewModel::toggleUseGrid,
+                    onStartOnChange = viewModel::setStartOn,
+                    onOrderChange = viewModel::setSectionOrder,
+                )
+            }
+
+            HorizontalDivider()
             SectionTitle(stringResource(R.string.settings_downloader_apps))
             ExternalApps.listed.forEach { app ->
                 val installed = ExternalApps.isInstalled(context, app)
@@ -305,6 +328,137 @@ private fun AppearanceSettings(
         },
     )
 }
+
+@Composable
+private fun homeSectionLabel(id: String): String = when (id) {
+    MovieTVFilterConfig.MOVIE -> stringResource(R.string.home_movies)
+    MovieTVFilterConfig.TV -> stringResource(R.string.home_tv_shows)
+    else -> HomeSections.catalogSection(id)?.label ?: id
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeSettings(
+    settings: UserEditableSettings,
+    onLayoutChange: (Boolean) -> Unit,
+    onStartOnChange: (String?) -> Unit,
+    onOrderChange: (List<String>) -> Unit,
+) {
+    var startDialog by rememberSaveable { mutableStateOf(false) }
+    var orderDialog by rememberSaveable { mutableStateOf(false) }
+
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.home_start_on)) },
+        supportingContent = {
+            Text(settings.startOn?.let { homeSectionLabel(it) } ?: stringResource(R.string.home_start_on_last))
+        },
+        leadingContent = { Icon(Icons.Default.Home, contentDescription = null) },
+        modifier = Modifier.clickable { startDialog = true },
+    )
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.home_layout)) },
+        leadingContent = { Icon(Icons.Default.GridView, contentDescription = null) },
+        supportingContent = {
+            Column {
+                Text(stringResource(R.string.home_layout_summary))
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.padding(top = 8.dp)) {
+                    listOf(true to R.string.grid, false to R.string.list).forEachIndexed { index, (grid, label) ->
+                        SegmentedButton(
+                            selected = settings.useGrid == grid,
+                            onClick = { onLayoutChange(grid) },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
+                        ) { Text(stringResource(label), maxLines = 1) }
+                    }
+                }
+            }
+        },
+    )
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.home_section_order)) },
+        supportingContent = { Text(stringResource(R.string.home_section_order_summary)) },
+        leadingContent = { Icon(Icons.Default.SwapVert, contentDescription = null) },
+        modifier = Modifier.clickable { orderDialog = true },
+    )
+
+    if (startDialog) {
+        val options = listOf<String?>(null) + HomeSections.defaultOrder
+        AlertDialog(
+            onDismissRequest = { startDialog = false },
+            title = { Text(stringResource(R.string.home_start_on)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    options.forEach { id ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .selectable(
+                                    selected = settings.startOn == id,
+                                    role = Role.RadioButton,
+                                    onClick = { onStartOnChange(id); startDialog = false },
+                                )
+                                .padding(vertical = 4.dp),
+                        ) {
+                            RadioButton(selected = settings.startOn == id, onClick = null)
+                            Text(
+                                text = id?.let { homeSectionLabel(it) } ?: stringResource(R.string.home_start_on_last),
+                                modifier = Modifier.padding(start = 16.dp),
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { startDialog = false }) { Text(stringResource(R.string.telegram_music_bot_cancel)) }
+            },
+        )
+    }
+
+    if (orderDialog) {
+        val order = settings.sectionOrder
+        AlertDialog(
+            onDismissRequest = { orderDialog = false },
+            title = { Text(stringResource(R.string.home_section_order)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    order.forEachIndexed { index, id ->
+                        val label = homeSectionLabel(id)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(label, modifier = Modifier.weight(1f))
+                            IconButton(
+                                enabled = index > 0,
+                                onClick = { onOrderChange(order.moved(index, index - 1)) },
+                            ) {
+                                Icon(
+                                    Icons.Default.KeyboardArrowUp,
+                                    contentDescription = stringResource(R.string.home_move_up, label),
+                                )
+                            }
+                            IconButton(
+                                enabled = index < order.lastIndex,
+                                onClick = { onOrderChange(order.moved(index, index + 1)) },
+                            ) {
+                                Icon(
+                                    Icons.Default.KeyboardArrowDown,
+                                    contentDescription = stringResource(R.string.home_move_down, label),
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { orderDialog = false }) { Text(stringResource(R.string.home_done)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { onOrderChange(emptyList()) }) { Text(stringResource(R.string.home_reset)) }
+            },
+        )
+    }
+}
+
+private fun List<String>.moved(from: Int, to: Int): List<String> =
+    toMutableList().apply { add(to, removeAt(from)) }
 
 @Composable
 private fun SectionTitle(text: String) {

@@ -27,6 +27,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.c4entertainment.mediahunter.MainActivityUiState
 import com.c4entertainment.mediahunter.components.MovieContent
 import com.c4entertainment.mediahunter.components.MovieFilters
+import com.c4entertainment.mediahunter.domain.model.HomeSections
 import com.c4entertainment.mediahunter.domain.model.movie_details.Genre
 import com.c4entertainment.mediahunter.domain.model.catalog.ArtistAlbum
 import com.c4entertainment.mediahunter.domain.model.catalog.ArtistRef
@@ -73,6 +74,8 @@ fun MovieScreen(
         musicChart = musicChart,
         telegramBot = telegramBot,
         loadArtistAlbums = viewModel::artistAlbums,
+        sectionOrder = (settingsState as? SettingsUiState.Success)?.settings?.sectionOrder
+            ?: HomeSections.defaultOrder,
         genres = genres,
         genre = (settingsState as? SettingsUiState.Success)?.settings?.genre,
         year = (settingsState as? SettingsUiState.Success)?.settings?.year,
@@ -95,6 +98,7 @@ fun MovieScreen(
     musicChart: MusicChart,
     telegramBot: String,
     loadArtistAlbums: suspend (ArtistRef) -> Result<List<ArtistAlbum>>,
+    sectionOrder: List<String>,
     genres: List<Genre>,
     genre: Int?,
     year: Int?,
@@ -163,6 +167,7 @@ fun MovieScreen(
             onCatalogRefresh = { movieEvent(MovieEvent.OnCatalogRefresh) },
             musicChart = musicChart,
             onMusicChartChange = { movieEvent(MovieEvent.OnMusicChartChanged(it)) },
+            sectionOrder = sectionOrder,
             filters = {
                 MovieFilters(
                     genres = genres,

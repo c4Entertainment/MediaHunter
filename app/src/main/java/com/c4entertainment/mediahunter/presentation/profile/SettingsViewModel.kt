@@ -18,6 +18,7 @@ package com.c4entertainment.mediahunter.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.c4entertainment.mediahunter.domain.model.HomeSections
 import com.c4entertainment.mediahunter.domain.repository.UserSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,6 +43,8 @@ class SettingsViewModel @Inject constructor(
                         pureBlack = userData.pureBlack,
                         darkThemeConfig = userData.darkThemeConfig,
                         telegramBot = userData.telegramBot,
+                        startOn = userData.startOn,
+                        sectionOrder = userData.sectionOrder,
                     ),
                 )
             }
@@ -51,6 +54,14 @@ class SettingsViewModel @Inject constructor(
                 initialValue = SettingsUiState.Loading,
             )
 
+
+    fun setStartOn(section: String?) {
+        viewModelScope.launch { userDataRepository.setStartOn(section) }
+    }
+
+    fun setSectionOrder(order: List<String>) {
+        viewModelScope.launch { userDataRepository.setSectionOrder(order) }
+    }
 
     fun toggleUseGrid(useFingerPrint: Boolean) {
         viewModelScope.launch {
@@ -101,6 +112,8 @@ data class UserEditableSettings(
     val pureBlack: Boolean,
     val darkThemeConfig: String,
     val telegramBot: String = "",
+    val startOn: String? = null,
+    val sectionOrder: List<String> = HomeSections.defaultOrder,
 )
 
 sealed interface SettingsUiState {

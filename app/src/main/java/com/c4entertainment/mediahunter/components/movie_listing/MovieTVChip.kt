@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.c4entertainment.mediahunter.components.Chip
+import com.c4entertainment.mediahunter.domain.model.HomeSections
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.mediahunter.util.MovieTVFilterConfig
 
@@ -24,6 +25,8 @@ fun MovieTVChip(
     selectedSection: CatalogSection? = null,
     /** Null hides the catalog chips. */
     onSectionSelected: ((CatalogSection) -> Unit)? = null,
+    /** Chip order as [HomeSections] ids. */
+    order: List<String> = HomeSections.defaultOrder,
 ) {
     Row(
         modifier = Modifier
@@ -33,26 +36,24 @@ fun MovieTVChip(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Chip(
-            selected = selectedSection == null && movieTV == MovieTVFilterConfig.MOVIE,
-            onSelectedChange = toggleMovie,
-        ) {
-            Text(text = "Movies")
-        }
+        order.forEach { id ->
+            when (val section = HomeSections.catalogSection(id)) {
+                null -> {
+                    val isMovie = id == MovieTVFilterConfig.MOVIE
+                    Chip(
+                        selected = selectedSection == null && movieTV == id,
+                        onSelectedChange = if (isMovie) toggleMovie else toggleTV,
+                    ) {
+                        Text(text = if (isMovie) "Movies" else "TV Shows")
+                    }
+                }
 
-        Chip(
-            selected = selectedSection == null && movieTV == MovieTVFilterConfig.TV,
-            onSelectedChange = toggleTV,
-        ) {
-            Text(text = "TV Shows")
-        }
-
-        if (onSectionSelected != null) CatalogSection.entries.forEach { section ->
-            Chip(
-                selected = selectedSection == section,
-                onSelectedChange = { onSectionSelected(section) },
-            ) {
-                Text(text = section.label)
+                else -> if (onSectionSelected != null) Chip(
+                    selected = selectedSection == section,
+                    onSelectedChange = { onSectionSelected(section) },
+                ) {
+                    Text(text = section.label)
+                }
             }
         }
     }

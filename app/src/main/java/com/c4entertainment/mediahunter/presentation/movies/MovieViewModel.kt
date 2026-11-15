@@ -11,6 +11,7 @@ import com.c4entertainment.mediahunter.data.mappers.toMovie
 import com.c4entertainment.mediahunter.data.network.api.TMDBMovieAPI
 import com.c4entertainment.mediahunter.data.paging.DiscoverPagingSource
 import com.c4entertainment.mediahunter.data.repository.TmdbGenres
+import com.c4entertainment.mediahunter.domain.model.HomeSections
 import com.c4entertainment.mediahunter.domain.model.movie_details.Genre
 import com.c4entertainment.mediahunter.util.MovieTVFilterConfig
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
@@ -62,6 +63,7 @@ class MovieViewModel @Inject constructor(
                     settings = UserEditableSettings(
                         movieTV = userData.movieTV,
                         useGrid = userData.useGrid,
+                        sectionOrder = userData.sectionOrder,
                         genre = if (userData.movieTV == MovieTVFilterConfig.TV) userData.tvGenre else userData.movieGenre,
                         year = if (userData.movieTV == MovieTVFilterConfig.TV) userData.tvYear else userData.movieYear,
                     ),
@@ -112,9 +114,19 @@ class MovieViewModel @Inject constructor(
                     genre = MusicGenre.entries.firstOrNull { it.name == settings.musicGenre },
                 )
             }
-            val section = _selectedSection.value
-            if (section != null && section.isMusic) {
-                loadCatalog(section, forceRefresh = false)
+            val chosen = _selectedSection.value
+            if (chosen != null) {
+                if (chosen.isMusic) loadCatalog(chosen, forceRefresh = false)
+            } else {
+                // Nothing picked yet: open on the section chosen in Settings.
+                val start = settings.startOn
+                val startSection = HomeSections.catalogSection(start)
+                if (startSection != null) {
+                    _selectedSection.value = startSection
+                    loadCatalog(startSection, forceRefresh = false)
+                } else if (start != null && start != settings.movieTV) {
+                    userSettingsRepository.setMovieTV(start)
+                }
             }
         }
     }
@@ -254,6 +266,7 @@ data class CatalogUiState(
 data class UserEditableSettings(
     val movieTV: String,
     val useGrid: Boolean,
+    val sectionOrder: List<String> = HomeSections.defaultOrder,
     /** TMDB genre id chosen for the current mode, null for Any. */
     val genre: Int? = null,
     /** Release year chosen for the current mode, null for Any. */

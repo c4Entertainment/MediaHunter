@@ -45,6 +45,12 @@ interface UserSettingsRepository {
     /** Remembers the music chart filters; [genre] null means all genres. */
     suspend fun setMusicChart(region: String, genre: String?)
 
+    /** Section Home opens on at app start; null keeps the last Movies/TV choice. */
+    suspend fun setStartOn(section: String?)
+
+    /** Home's chip order; an empty list restores the default. */
+    suspend fun setSectionOrder(order: List<String>)
+
     /** Remembers Home's genre and year filters for [type] ("movie" or "tv"); null means Any. */
     suspend fun setHomeFilter(type: String, genre: Int?, year: Int?)
 

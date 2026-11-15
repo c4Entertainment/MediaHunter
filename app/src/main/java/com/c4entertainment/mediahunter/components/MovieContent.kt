@@ -18,6 +18,7 @@ import androidx.paging.compose.LazyPagingItems
 import com.c4entertainment.mediahunter.components.movie_listing.MovieTVChip
 import com.c4entertainment.mediahunter.components.movie_listing.view.GridContent
 import com.c4entertainment.mediahunter.components.movie_listing.view.ListContent
+import com.c4entertainment.mediahunter.domain.model.HomeSections
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.mediahunter.domain.model.catalog.MusicChart
@@ -45,6 +46,7 @@ fun MovieContent(
     onMusicChartChange: (MusicChart) -> Unit = {},
     /** Shown above the Movies/TV list, e.g. genre and year chips. */
     filters: (@Composable () -> Unit)? = null,
+    sectionOrder: List<String> = HomeSections.defaultOrder,
 ) {
     val isRefreshing = content.loadState.refresh is LoadState.Loading
     val pullToRefreshState = rememberPullToRefreshState()
@@ -58,6 +60,7 @@ fun MovieContent(
             toggleTV = toggleTV,
             selectedSection = selectedSection,
             onSectionSelected = onSectionSelected,
+            order = sectionOrder,
         )
 
         if (selectedSection != null) {
