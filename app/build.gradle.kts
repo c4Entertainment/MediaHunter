@@ -24,7 +24,7 @@ android {
         minSdk = 25
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -32,12 +32,21 @@ android {
         }
 
 
-        val properties = Properties()
-        properties.load(project.rootProject.file("local.properties").inputStream())
+        // Keys and flags come from, in order: a Gradle property, an environment
+        // variable, local.properties (if present), else the default.
+        val localProperties = Properties()
+        val localFile = project.rootProject.file("local.properties")
+        if (localFile.exists()) {
+            localFile.inputStream().use { localProperties.load(it) }
+        }
+        fun setting(name: String, default: String = ""): String =
+            (project.findProperty(name) as String?)
+                ?: System.getenv(name)
+                ?: localProperties.getProperty(name)
+                ?: default
 
-        buildConfigField("String", "TMDB_API_KEY", "\"${properties.getProperty("TMDB_API_KEY")}\"")
-        buildConfigField("String", "RAWG_API_KEY", "\"${properties.getProperty("RAWG_API_KEY", "")}\"")
-
+        buildConfigField("String", "TMDB_API_KEY", "\"${setting("TMDB_API_KEY")}\"")
+        buildConfigField("String", "RAWG_API_KEY", "\"${setting("RAWG_API_KEY")}\"")
     }
 
     buildTypes {
@@ -47,7 +56,17 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            // Unsigned unless asked: F-Droid signs its own builds. Set
+            // signReleaseWithDebugKey=true to sign local release builds.
+            val localProps = Properties()
+            val lf = project.rootProject.file("local.properties")
+            if (lf.exists()) lf.inputStream().use { localProps.load(it) }
+            val signWithDebug = ((project.findProperty("signReleaseWithDebugKey") as String?)
+                ?: System.getenv("signReleaseWithDebugKey")
+                ?: localProps.getProperty("signReleaseWithDebugKey")) == "true"
+            if (signWithDebug) {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
         debug {
             isMinifyEnabled = true
