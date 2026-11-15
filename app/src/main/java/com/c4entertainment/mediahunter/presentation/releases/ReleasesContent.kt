@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -71,10 +71,11 @@ fun ReleasesContent(
     viewModel: ReleasesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val today = LocalDate.now()
     val thisWeek = weekStartOf(today)
+    // Each week starts at the top.
+    val listState = remember(state.weekStart) { LazyListState() }
     val groups = remember(state.entries) { state.entries.groupBy { it.date }.toSortedMap() }
     // LazyColumn index of each day's header, for the day pills.
     val headerIndex = remember(groups) {
