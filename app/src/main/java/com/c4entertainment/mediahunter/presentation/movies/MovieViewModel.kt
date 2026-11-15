@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.presentation.movies
 
+import com.c4entertainment.mediahunter.data.network.ApiKeyProblem
+import com.c4entertainment.mediahunter.data.network.apiKeyProblem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -244,6 +246,7 @@ class MovieViewModel @Inject constructor(
                     _catalogState.value = CatalogUiState(
                         items = cached,
                         error = error.message ?: "Couldn't load",
+                        keyProblem = error.apiKeyProblem(),
                     )
                 }
         }
@@ -261,6 +264,8 @@ data class CatalogUiState(
     val items: List<CatalogItem> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
+    /** Set when the failure was a missing or refused API key. */
+    val keyProblem: ApiKeyProblem? = null,
 )
 
 data class UserEditableSettings(

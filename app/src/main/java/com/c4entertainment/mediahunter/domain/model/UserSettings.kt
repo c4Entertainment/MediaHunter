@@ -37,6 +37,8 @@ data class UserSettings(
     val telegramBot: String = "",
     /** The user's own TMDB API key; empty means the key built into the app is used. Never shown in the UI. */
     val tmdbApiKey: String = "",
+    /** The user's own RAWG API key (Games); empty means the built-in key, if any. Never shown in the UI. */
+    val rawgApiKey: String = "",
     /** Home genre filter (TMDB genre id) and release year per mode; null means Any. */
     val movieGenre: Int? = null,
     val movieYear: Int? = null,

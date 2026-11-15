@@ -44,6 +44,7 @@ class SettingsViewModel @Inject constructor(
                         darkThemeConfig = userData.darkThemeConfig,
                         telegramBot = userData.telegramBot,
                         hasOwnTmdbKey = userData.tmdbApiKey.isNotEmpty(),
+                        hasOwnRawgKey = userData.rawgApiKey.isNotEmpty(),
                         startOn = userData.startOn,
                         sectionOrder = userData.sectionOrder,
                     ),
@@ -102,6 +103,13 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /** Saves the user's own RAWG key; blank switches back to the built-in key, if any. */
+    fun updateRawgApiKey(input: String) {
+        viewModelScope.launch {
+            userDataRepository.setRawgApiKey(input.trim())
+        }
+    }
+
     fun updateDynamicColorPreference(useDynamicColor: Boolean) {
         viewModelScope.launch {
             userDataRepository.setDynamicColorPreference(useDynamicColor)
@@ -122,6 +130,7 @@ data class UserEditableSettings(
     val telegramBot: String = "",
     /** Whether the user set their own TMDB key; the key itself never leaves the data layer. */
     val hasOwnTmdbKey: Boolean = false,
+    val hasOwnRawgKey: Boolean = false,
     val startOn: String? = null,
     val sectionOrder: List<String> = HomeSections.defaultOrder,
 )

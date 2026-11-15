@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -30,6 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.c4entertainment.mediahunter.R
+import com.c4entertainment.mediahunter.data.network.ApiKeyProblem
+import com.c4entertainment.mediahunter.data.network.ApiService
 
 /**
  * A centered icon, title and one-line hint, with an optional action.
@@ -109,4 +112,28 @@ private fun Context.isOnline(): Boolean {
     val manager = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return true
     val caps = manager.getNetworkCapabilities(manager.activeNetwork) ?: return false
     return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+}
+
+/** A RAWG key is missing or refused: says so and sends the user to Settings, where the key goes. */
+@Composable
+fun GamesKeyMessage(problem: ApiKeyProblem, onOpenSettings: () -> Unit, modifier: Modifier = Modifier) {
+    StateMessage(
+        icon = Icons.Outlined.Key,
+        title = stringResource(R.string.state_games_key_title),
+        body = stringResource(
+            if (problem is ApiKeyProblem.Rejected) R.string.state_games_key_rejected
+            else R.string.state_games_key_missing
+        ),
+        modifier = modifier,
+        actionLabel = stringResource(R.string.state_games_key_action),
+        onAction = onOpenSettings,
+    )
+}
+
+/** The Home Movies/TV body for a TMDB key problem, or null for any other failure. */
+@Composable
+fun tmdbKeyProblemBody(problem: ApiKeyProblem?): String? = when {
+    problem == null || problem.service != ApiService.Tmdb -> null
+    problem is ApiKeyProblem.Rejected -> stringResource(R.string.state_error_rejected_tmdb_key)
+    else -> stringResource(R.string.state_error_missing_tmdb_key)
 }

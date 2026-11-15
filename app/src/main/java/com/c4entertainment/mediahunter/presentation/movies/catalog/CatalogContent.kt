@@ -44,6 +44,7 @@ import com.c4entertainment.mediahunter.R
 import com.c4entertainment.mediahunter.components.LoadingPlaceholders
 import com.c4entertainment.mediahunter.components.MediaCard
 import com.c4entertainment.mediahunter.components.ErrorMessage
+import com.c4entertainment.mediahunter.components.GamesKeyMessage
 import com.c4entertainment.mediahunter.components.NoResultsMessage
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
@@ -109,6 +110,7 @@ fun CatalogContent(
     onRefresh: () -> Unit,
     onItemClick: (CatalogItem) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenSettings: () -> Unit = {},
     musicChart: MusicChart = MusicChart(),
     onMusicChartChange: (MusicChart) -> Unit = {},
 ) = Column(modifier) {
@@ -121,6 +123,9 @@ fun CatalogContent(
             aspectRatio = section.imageAspectRatio,
             minCellSize = if (section == CatalogSection.Games) 160.dp else 128.dp,
         )
+
+        state.items.isEmpty() && state.keyProblem != null ->
+            GamesKeyMessage(state.keyProblem, onOpenSettings)
 
         state.items.isEmpty() && state.error != null ->
             ErrorMessage(onRetry = onRefresh)

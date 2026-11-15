@@ -165,6 +165,7 @@ fun MovieScreen(
                 movieEvent(MovieEvent.OnCatalogSectionSelected(it))
             },
             onCatalogRefresh = { movieEvent(MovieEvent.OnCatalogRefresh) },
+            onOpenSettings = { navigate(Screen.SettingsScreen.route) },
             musicChart = musicChart,
             onMusicChartChange = { movieEvent(MovieEvent.OnMusicChartChanged(it)) },
             sectionOrder = sectionOrder,

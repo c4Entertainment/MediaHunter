@@ -63,7 +63,6 @@ class CatalogRepositoryImpl @Inject constructor(
             CatalogSection.Artists -> artists(chart).map { it.toCatalogItem() }
             CatalogSection.Books -> openLibrary.getTrending().works.map { it.toCatalogItem() }
             CatalogSection.Games -> {
-                requireRawgKey()
                 val today = LocalDate.now()
                 rawg.getGames(dates = "${today.minusYears(1)},$today").results.map { it.toCatalogItem() }
             }
@@ -78,7 +77,6 @@ class CatalogRepositoryImpl @Inject constructor(
             CatalogSection.Artists -> deezer.searchArtists(query).data.map { it.toCatalogItem() }
             CatalogSection.Books -> openLibrary.search(query).docs.map { it.toCatalogItem() }
             CatalogSection.Games -> {
-                requireRawgKey()
                 // RAWG ranks by relevance when no ordering is given.
                 rawg.getGames(search = query, ordering = null).results.map { it.toCatalogItem() }
             }
@@ -144,10 +142,6 @@ class CatalogRepositoryImpl @Inject constructor(
         throw e
     } catch (e: Exception) {
         Result.failure(e)
-    }
-
-    private fun requireRawgKey() = check(RawgAPI.API_KEY.isNotBlank() && RawgAPI.API_KEY != "null") {
-        "Games need a free RAWG key. Add RAWG_API_KEY to local.properties."
     }
 
     private suspend fun anime(variables: AniListVariables) =

@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.presentation.search
 
+import com.c4entertainment.mediahunter.data.network.ApiKeyProblem
+import com.c4entertainment.mediahunter.data.network.apiKeyProblem
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -36,7 +38,7 @@ import javax.inject.Inject
 sealed interface CatalogSearchResult {
     data object Loading : CatalogSearchResult
     data class Success(val items: List<CatalogItem>) : CatalogSearchResult
-    data class Error(val message: String) : CatalogSearchResult
+    data class Error(val message: String, val keyProblem: ApiKeyProblem? = null) : CatalogSearchResult
 }
 
 /** The search that is on screen: blank [query] means nothing has been searched yet. */
@@ -173,7 +175,7 @@ class UnifiedSearchViewModel @Inject constructor(
         catalogJobs[key] = viewModelScope.launch {
             val result = catalogRepository.search(catalog, query).fold(
                 onSuccess = { CatalogSearchResult.Success(it) },
-                onFailure = { CatalogSearchResult.Error(it.message ?: "Couldn't search") },
+                onFailure = { CatalogSearchResult.Error(it.message ?: "Couldn't search", it.apiKeyProblem()) },
             )
             catalogResults.value = catalogResults.value + (key to result)
         }

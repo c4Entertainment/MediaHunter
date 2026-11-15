@@ -60,6 +60,9 @@ interface UserSettingsRepository {
     /** Remembers the user's own TMDB API key; blank clears it and the built-in key is used again. */
     suspend fun setTmdbApiKey(key: String)
 
+    /** Remembers the user's own RAWG API key; blank clears it. */
+    suspend fun setRawgApiKey(key: String)
+
     /** Remembers a Search screen query, newest first, without duplicates. */
     suspend fun addRecentSearch(query: String)
 

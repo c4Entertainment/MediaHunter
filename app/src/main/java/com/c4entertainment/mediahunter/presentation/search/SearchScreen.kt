@@ -53,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.c4entertainment.mediahunter.navigation.Screen
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -62,6 +63,7 @@ import com.c4entertainment.mediahunter.components.LoadingListPlaceholders
 import com.c4entertainment.mediahunter.components.LoadingPlaceholders
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.mediahunter.components.ErrorMessage
+import com.c4entertainment.mediahunter.components.GamesKeyMessage
 import com.c4entertainment.mediahunter.components.NoResultsMessage
 import com.c4entertainment.mediahunter.components.movie_listing.view.GridContent
 import com.c4entertainment.mediahunter.components.movie_listing.view.ListContent
@@ -152,7 +154,15 @@ fun SearchScreen(
                                 aspectRatio = catalog?.imageAspectRatio ?: (2f / 3f),
                                 minCellSize = if (catalog == CatalogSection.Games) 160.dp else 128.dp,
                             )
-                            is CatalogSearchResult.Error -> ErrorMessage(onRetry = viewModel::retry)
+                            is CatalogSearchResult.Error ->
+                                if (result.keyProblem != null) {
+                                    GamesKeyMessage(
+                                        problem = result.keyProblem,
+                                        onOpenSettings = { navController.navigate(Screen.SettingsScreen.route) },
+                                    )
+                                } else {
+                                    ErrorMessage(onRetry = viewModel::retry)
+                                }
 
                             is CatalogSearchResult.Success ->
                                 if (result.items.isEmpty() || catalog == null) {

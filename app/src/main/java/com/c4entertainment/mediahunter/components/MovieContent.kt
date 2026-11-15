@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.c4entertainment.mediahunter.R
-import com.c4entertainment.mediahunter.data.network.MissingTmdbKeyException
+import com.c4entertainment.mediahunter.data.network.apiKeyProblem
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.c4entertainment.mediahunter.components.movie_listing.MovieTVChip
@@ -43,6 +43,7 @@ fun MovieContent(
     onSectionSelected: ((CatalogSection) -> Unit)? = null,
     onCatalogRefresh: () -> Unit = {},
     onCatalogItemClick: (CatalogItem) -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     musicChart: MusicChart = MusicChart(),
     onMusicChartChange: (MusicChart) -> Unit = {},
     /** Shown above the Movies/TV list, e.g. genre and year chips. */
@@ -70,6 +71,7 @@ fun MovieContent(
                 state = catalogState,
                 onRefresh = onCatalogRefresh,
                 onItemClick = onCatalogItemClick,
+                onOpenSettings = onOpenSettings,
                 musicChart = musicChart,
                 onMusicChartChange = onMusicChartChange,
             )
@@ -90,8 +92,7 @@ fun MovieContent(
                 if (content.loadState.refresh is LoadState.Error) {
                     ErrorMessage(
                         onRetry = { content.refresh() },
-                        body = if ((content.loadState.refresh as LoadState.Error).error is MissingTmdbKeyException)
-                            stringResource(R.string.state_error_missing_tmdb_key) else null,
+                        body = tmdbKeyProblemBody((content.loadState.refresh as LoadState.Error).error.apiKeyProblem()),
                     )
                 } else {
                     PullToRefreshBox(

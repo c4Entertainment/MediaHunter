@@ -84,6 +84,10 @@ class UserSettingsRepositoryImpl @Inject constructor(
         preferencesDataSource.setTmdbApiKey(key.trim())
     }
 
+    override suspend fun setRawgApiKey(key: String) {
+        preferencesDataSource.setRawgApiKey(key.trim())
+    }
+
     override suspend fun addRecentSearch(query: String) {
         preferencesDataSource.addRecentSearch(query)
     }

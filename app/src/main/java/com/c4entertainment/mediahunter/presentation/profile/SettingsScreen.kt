@@ -112,7 +112,7 @@ fun SettingsScreen(
     val lockOn = settings?.useFingerPrint == true
     val canLock = remember { AppLock.canLock(context) }
     var botDialogOpen by rememberSaveable { mutableStateOf(false) }
-    var tmdbDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var keyDialog by rememberSaveable { mutableStateOf<ApiKeyTarget?>(null) }
 
     // Turning the lock on needs one successful unlock, so nobody sets a lock
     // they can't open.
@@ -271,26 +271,54 @@ fun SettingsScreen(
             )
 
             HorizontalDivider()
-            SectionTitle(stringResource(R.string.settings_tmdb))
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.tmdb_api_key)) },
-                supportingContent = {
-                    Text(
-                        stringResource(
-                            if (settings?.hasOwnTmdbKey == true) R.string.tmdb_api_key_own
-                            else R.string.tmdb_api_key_builtin
-                        )
-                    )
-                },
-                leadingContent = { Icon(Icons.Default.Key, contentDescription = null) },
-                modifier = Modifier.clickable { tmdbDialogOpen = true },
+            SectionTitle(stringResource(R.string.settings_api_keys))
+            ApiKeyRow(
+                title = stringResource(R.string.tmdb_api_key),
+                hasOwnKey = settings?.hasOwnTmdbKey == true,
+                hasBuiltInKey = BuildConfig.TMDB_API_KEY.isNotEmpty(),
+                unsetSummary = stringResource(R.string.tmdb_api_key_unset),
+                onClick = { keyDialog = ApiKeyTarget.Tmdb },
             )
-            if (tmdbDialogOpen) {
-                TmdbApiKeyDialog(
-                    onSave = { viewModel.updateTmdbApiKey(it); tmdbDialogOpen = false },
-                    onUseBuiltIn = { viewModel.updateTmdbApiKey(""); tmdbDialogOpen = false },
-                    onGetKey = { context.openUrl(TMDB_API_SETTINGS_URL) },
-                    onDismiss = { tmdbDialogOpen = false },
+            ApiKeyRow(
+                title = stringResource(R.string.rawg_api_key),
+                hasOwnKey = settings?.hasOwnRawgKey == true,
+                hasBuiltInKey = BuildConfig.RAWG_API_KEY.isNotEmpty(),
+                unsetSummary = stringResource(R.string.rawg_api_key_unset),
+                onClick = { keyDialog = ApiKeyTarget.Rawg },
+            )
+            keyDialog?.let { target ->
+                val builtIn = when (target) {
+                    ApiKeyTarget.Tmdb -> BuildConfig.TMDB_API_KEY.isNotEmpty()
+                    ApiKeyTarget.Rawg -> BuildConfig.RAWG_API_KEY.isNotEmpty()
+                }
+                ApiKeyDialog(
+                    title = stringResource(
+                        if (target == ApiKeyTarget.Tmdb) R.string.tmdb_api_key else R.string.rawg_api_key
+                    ),
+                    explanation = stringResource(
+                        if (target == ApiKeyTarget.Tmdb) R.string.tmdb_api_key_explain else R.string.rawg_api_key_explain
+                    ),
+                    clearLabel = stringResource(if (builtIn) R.string.api_key_use_builtin else R.string.api_key_clear),
+                    onSave = {
+                        when (target) {
+                            ApiKeyTarget.Tmdb -> viewModel.updateTmdbApiKey(it)
+                            ApiKeyTarget.Rawg -> viewModel.updateRawgApiKey(it)
+                        }
+                        keyDialog = null
+                    },
+                    onClear = {
+                        when (target) {
+                            ApiKeyTarget.Tmdb -> viewModel.updateTmdbApiKey("")
+                            ApiKeyTarget.Rawg -> viewModel.updateRawgApiKey("")
+                        }
+                        keyDialog = null
+                    },
+                    onGetKey = {
+                        context.openUrl(
+                            if (target == ApiKeyTarget.Tmdb) TMDB_API_SETTINGS_URL else RAWG_API_DOCS_URL
+                        )
+                    },
+                    onDismiss = { keyDialog = null },
                 )
             }
 
@@ -632,45 +660,76 @@ private fun TelegramBotDialog(
 }
 
 private const val TMDB_API_SETTINGS_URL = "https://www.themoviedb.org/settings/api"
+private const val RAWG_API_DOCS_URL = "https://rawg.io/apidocs"
+
+private enum class ApiKeyTarget { Tmdb, Rawg }
+
+/** One API key row; the summary says where the key comes from, never what it is. */
+@Composable
+private fun ApiKeyRow(
+    title: String,
+    hasOwnKey: Boolean,
+    hasBuiltInKey: Boolean,
+    unsetSummary: String,
+    onClick: () -> Unit,
+) {
+    ListItem(
+        headlineContent = { Text(title) },
+        supportingContent = {
+            Text(
+                when {
+                    hasOwnKey -> stringResource(R.string.api_key_own)
+                    hasBuiltInKey -> stringResource(R.string.api_key_builtin)
+                    else -> unsetSummary
+                }
+            )
+        },
+        leadingContent = { Icon(Icons.Default.Key, contentDescription = null) },
+        modifier = Modifier.clickable(onClick = onClick),
+    )
+}
 
 /**
- * Asks for the user's own TMDB key. The field starts empty even when a key is
+ * Asks for the user's own API key. The field starts empty even when a key is
  * set, so the key is never shown; Save with a blank field changes nothing.
  */
 @Composable
-private fun TmdbApiKeyDialog(
+private fun ApiKeyDialog(
+    title: String,
+    explanation: String,
+    clearLabel: String,
     onSave: (String) -> Unit,
-    onUseBuiltIn: () -> Unit,
+    onClear: () -> Unit,
     onGetKey: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var text by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.tmdb_api_key)) },
+        title = { Text(title) },
         text = {
             Column {
-                Text(stringResource(R.string.tmdb_api_key_explain))
+                Text(explanation)
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
                     singleLine = true,
-                    placeholder = { Text(stringResource(R.string.tmdb_api_key_hint)) },
+                    placeholder = { Text(stringResource(R.string.api_key_hint)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
                     modifier = Modifier.padding(top = 12.dp),
                 )
-                TextButton(onClick = onGetKey) { Text(stringResource(R.string.tmdb_api_key_get)) }
+                TextButton(onClick = onGetKey) { Text(stringResource(R.string.api_key_get)) }
             }
         },
         confirmButton = {
             TextButton(onClick = { if (text.isBlank()) onDismiss() else onSave(text) }) {
-                Text(stringResource(R.string.tmdb_api_key_save))
+                Text(stringResource(R.string.api_key_save))
             }
         },
         dismissButton = {
             Row {
-                TextButton(onClick = onUseBuiltIn) { Text(stringResource(R.string.tmdb_api_key_use_builtin)) }
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.tmdb_api_key_cancel)) }
+                TextButton(onClick = onClear) { Text(clearLabel) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.api_key_cancel)) }
             }
         },
     )

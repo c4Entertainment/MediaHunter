@@ -4,7 +4,10 @@ import android.content.Context
 import androidx.room.Room
 import com.c4entertainment.mediahunter.MediaHunterApp
 import com.c4entertainment.mediahunter.data.cache.MovieDatabase
-import com.c4entertainment.mediahunter.data.network.TmdbApiKeyInterceptor
+import com.c4entertainment.mediahunter.data.network.ApiKeyInterceptor
+import com.c4entertainment.mediahunter.data.network.ApiService
+import com.c4entertainment.mediahunter.data.network.UserApiKeys
+import com.c4entertainment.mediahunter.BuildConfig
 import com.c4entertainment.mediahunter.data.network.api.AniListAPI
 import com.c4entertainment.mediahunter.data.network.api.KitsuAPI
 import com.c4entertainment.mediahunter.data.network.api.DeezerAPI
@@ -45,10 +48,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMovieApi2(keyInterceptor: TmdbApiKeyInterceptor): TMDBMovieAPI {
+    fun provideMovieApi2(keys: UserApiKeys): TMDBMovieAPI {
         return Retrofit.Builder()
             .baseUrl(TMDBMovieAPI.BASE_URL)
-            .client(OkHttpClient.Builder().addInterceptor(keyInterceptor).build())
+            .client(
+                OkHttpClient.Builder()
+                    .addInterceptor(ApiKeyInterceptor(ApiService.Tmdb, "api_key", BuildConfig.TMDB_API_KEY, keys))
+                    .build()
+            )
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
             .create(TMDBMovieAPI::class.java)
@@ -71,7 +78,16 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideRawgApi(): RawgAPI = retrofit(RawgAPI.BASE_URL).create(RawgAPI::class.java)
+    fun provideRawgApi(keys: UserApiKeys): RawgAPI = Retrofit.Builder()
+        .baseUrl(RawgAPI.BASE_URL)
+        .client(
+            OkHttpClient.Builder()
+                .addInterceptor(ApiKeyInterceptor(ApiService.Rawg, "key", BuildConfig.RAWG_API_KEY, keys))
+                .build()
+        )
+        .addConverterFactory(MoshiConverterFactory.create())
+        .build()
+        .create(RawgAPI::class.java)
 
     @Provides
     @Singleton

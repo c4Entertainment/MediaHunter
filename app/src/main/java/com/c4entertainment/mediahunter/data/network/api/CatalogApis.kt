@@ -1,6 +1,5 @@
 package com.c4entertainment.mediahunter.data.network.api
 
-import com.c4entertainment.mediahunter.BuildConfig
 import com.c4entertainment.mediahunter.data.network.dto.catalog.AniListRequest
 import com.c4entertainment.mediahunter.data.network.dto.catalog.AniListResponseDto
 import com.c4entertainment.mediahunter.data.network.dto.catalog.DeezerAlbumChartDto
@@ -91,7 +90,7 @@ interface OpenLibraryAPI {
     }
 }
 
-/** RAWG. Needs a free key (RAWG_API_KEY in local.properties) and attribution. */
+/** RAWG. Needs a free key (the user's own, or RAWG_API_KEY at build time) and attribution. */
 interface RawgAPI {
     @GET("games")
     suspend fun getGames(
@@ -99,12 +98,10 @@ interface RawgAPI {
         @Query("search") search: String? = null,
         @Query("ordering") ordering: String? = "-added",
         @Query("page_size") pageSize: Int = 40,
-        @Query("key") apiKey: String = API_KEY,
     ): RawgGamesDto
 
     companion object {
         const val BASE_URL = "https://api.rawg.io/api/"
-        const val API_KEY = BuildConfig.RAWG_API_KEY
     }
 }
 
