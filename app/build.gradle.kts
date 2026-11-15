@@ -47,6 +47,9 @@ android {
 
         buildConfigField("String", "TMDB_API_KEY", "\"${setting("TMDB_API_KEY")}\"")
         buildConfigField("String", "RAWG_API_KEY", "\"${setting("RAWG_API_KEY")}\"")
+        // Only for store screenshots: -PscreenshotMode=true swaps Home's Movies and TV
+        // feeds for a fixed list of openly licensed titles. Never true by default.
+        buildConfigField("boolean", "SCREENSHOT_MODE", (setting("screenshotMode") == "true").toString())
     }
 
     buildTypes {

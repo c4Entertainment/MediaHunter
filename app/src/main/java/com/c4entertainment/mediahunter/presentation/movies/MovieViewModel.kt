@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.presentation.movies
 
+import com.c4entertainment.mediahunter.BuildConfig
+import com.c4entertainment.mediahunter.data.screenshot.ScreenshotCatalog
 import com.c4entertainment.mediahunter.data.network.ApiKeyProblem
 import com.c4entertainment.mediahunter.data.network.apiKeyProblem
 import androidx.lifecycle.ViewModel
@@ -216,7 +218,9 @@ class MovieViewModel @Inject constructor(
     }
 
     private suspend fun showFeed(type: String, genre: Int?, year: Int?) {
-        val feed = if (genre == null && year == null) {
+        val feed = if (BuildConfig.SCREENSHOT_MODE) {
+            Pager(PagingConfig(pageSize = 20)) { ScreenshotCatalog.source(movieApi, type) }.flow
+        } else if (genre == null && year == null) {
             repository.getMovies(type = type).map { pagingData ->
                 pagingData.map { movieEntity -> movieEntity.toMovie() }
             }
