@@ -5,7 +5,9 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.AssistChip
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Icon
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -188,68 +190,103 @@ private fun MusicChartFilters(
 ) {
     // Editor's picks is an Albums-only chart: it must not lock the other sections' filters.
     val editorsPicks = section == CatalogSection.Albums && chart.editorsPicks
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-    ) {
-        var regionOpen by remember { mutableStateOf(false) }
-        Box {
-            AssistChip(
-                onClick = { regionOpen = true },
-                enabled = chart.genre == null && !editorsPicks,
-                label = { Text("Region: ${chart.region.label} ▾") },
-            )
-            DropdownMenu(
-                expanded = regionOpen,
-                onDismissRequest = { regionOpen = false },
-                modifier = Modifier.heightIn(max = 400.dp),
-            ) {
-                MusicRegion.entries.forEach { region ->
-                    DropdownMenuItem(
-                        text = { Text(region.label) },
-                        onClick = {
-                            regionOpen = false
-                            onChange(chart.copy(region = region))
-                        },
-                    )
+    val regionEnabled = chart.genre == null && !editorsPicks
+    val genreEnabled = !editorsPicks
+    Column {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+        ) {
+            var regionOpen by remember { mutableStateOf(false) }
+            val regionChosen = chart.region != MusicRegion.Worldwide
+            Box {
+                FilterChip(
+                    selected = regionChosen,
+                    onClick = { regionOpen = true },
+                    enabled = regionEnabled,
+                    label = {
+                        Text(
+                            if (regionChosen) stringResource(R.string.music_region_value, chart.region.label)
+                            else stringResource(R.string.music_region)
+                        )
+                    },
+                    trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
+                )
+                DropdownMenu(
+                    expanded = regionOpen,
+                    onDismissRequest = { regionOpen = false },
+                    modifier = Modifier.heightIn(max = 400.dp),
+                ) {
+                    MusicRegion.entries.forEach { region ->
+                        DropdownMenuItem(
+                            text = { Text(region.label) },
+                            onClick = {
+                                regionOpen = false
+                                onChange(chart.copy(region = region))
+                            },
+                        )
+                    }
                 }
             }
-        }
 
-        var genreOpen by remember { mutableStateOf(false) }
-        Box {
-            AssistChip(
-                onClick = { genreOpen = true },
-                enabled = !editorsPicks,
-                label = { Text("Genre: ${chart.genre?.label ?: "All"} ▾") },
-            )
-            DropdownMenu(expanded = genreOpen, onDismissRequest = { genreOpen = false }) {
-                DropdownMenuItem(
-                    text = { Text("All") },
-                    onClick = {
-                        genreOpen = false
-                        onChange(chart.copy(genre = null))
+            var genreOpen by remember { mutableStateOf(false) }
+            Box {
+                FilterChip(
+                    selected = chart.genre != null,
+                    onClick = { genreOpen = true },
+                    enabled = genreEnabled,
+                    label = {
+                        Text(
+                            chart.genre?.let { stringResource(R.string.music_genre_value, it.label) }
+                                ?: stringResource(R.string.music_genre)
+                        )
                     },
+                    trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
                 )
-                MusicGenre.entries.forEach { genre ->
+                DropdownMenu(expanded = genreOpen, onDismissRequest = { genreOpen = false }) {
                     DropdownMenuItem(
-                        text = { Text(genre.label) },
+                        text = { Text(stringResource(R.string.music_genre_all)) },
                         onClick = {
                             genreOpen = false
-                            onChange(chart.copy(genre = genre))
+                            onChange(chart.copy(genre = null))
                         },
                     )
+                    MusicGenre.entries.forEach { genre ->
+                        DropdownMenuItem(
+                            text = { Text(genre.label) },
+                            onClick = {
+                                genreOpen = false
+                                onChange(chart.copy(genre = genre))
+                            },
+                        )
+                    }
                 }
             }
-        }
 
-        if (section == CatalogSection.Albums) {
-            FilterChip(
-                selected = editorsPicks,
-                onClick = { onChange(chart.copy(editorsPicks = !chart.editorsPicks)) },
-                label = { Text("Editor's picks") },
+            if (section == CatalogSection.Albums) {
+                FilterChip(
+                    selected = editorsPicks,
+                    onClick = { onChange(chart.copy(editorsPicks = !chart.editorsPicks)) },
+                    label = { Text(stringResource(R.string.music_editors_picks)) },
+                )
+            }
+        }
+        // Say why a chip is greyed out instead of leaving it a mystery.
+        val note = when {
+            editorsPicks -> R.string.music_note_editors_picks
+            !regionEnabled -> R.string.music_note_region_genre
+            else -> null
+        }
+        if (note != null) {
+            Text(
+                text = stringResource(note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
             )
         }
     }

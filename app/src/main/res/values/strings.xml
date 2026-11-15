@@ -96,4 +96,12 @@
     <string name="state_error_generic">Couldn\'t load this. Try again.</string>
     <string name="state_retry">Retry</string>
     <string name="state_refresh_failed">Couldn\'t refresh</string>
+    <string name="music_region">Region</string>
+    <string name="music_region_value">Region: %1$s</string>
+    <string name="music_genre">Genre</string>
+    <string name="music_genre_value">Genre: %1$s</string>
+    <string name="music_genre_all">All</string>
+    <string name="music_editors_picks">Editor\'s picks</string>
+    <string name="music_note_region_genre">Region doesn\'t apply to genre charts.</string>
+    <string name="music_note_editors_picks">Editor\'s picks ignores region and genre.</string>
 </resources>
