@@ -97,7 +97,7 @@ fun MovieScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            MovieScreenTopBar(isGridView = useGrid, toggleView = {
+            MovieScreenTopBar(isGridView = useGrid, showViewToggle = selectedSection == null, toggleView = {
                 movieEvent(MovieEvent.OnToggleView(!useGrid))
             }, onSettingsClicked = {
                 navigate(Screen.SettingsScreen.route)

@@ -80,4 +80,11 @@
     <string name="search_recent_item">Search again for %1$s</string>
     <string name="search_no_results">No results in %1$s \u2014 try another category</string>
     <string name="search_results_caption">Results for \u201c%1$s\u201d \u00b7 %2$s</string>
+    <string name="home_search_placeholder">Search movies, music, books\u2026</string>
+    <string name="home_search_open">Open search</string>
+    <string name="home_settings">Settings</string>
+    <string name="home_more_options">More options</string>
+    <string name="home_open_torrentsearch">Open TorrentSearch</string>
+    <string name="home_list_view">List view</string>
+    <string name="home_grid_view">Grid view</string>
 </resources>
