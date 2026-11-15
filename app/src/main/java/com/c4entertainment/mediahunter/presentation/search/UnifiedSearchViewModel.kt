@@ -173,7 +173,7 @@ class UnifiedSearchViewModel @Inject constructor(
         catalogJobs[key] = viewModelScope.launch {
             val result = catalogRepository.search(catalog, query).fold(
                 onSuccess = { CatalogSearchResult.Success(it) },
-                onFailure = { CatalogSearchResult.Error(it.message ?: "Couldn't search ${section.label.lowercase()}") },
+                onFailure = { CatalogSearchResult.Error(it.message ?: "Couldn't search") },
             )
             catalogResults.value = catalogResults.value + (key to result)
         }

@@ -29,7 +29,7 @@ fun MovieDetailsTopBar(
             IconButton(onClick = navigateBack ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.action_back),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }

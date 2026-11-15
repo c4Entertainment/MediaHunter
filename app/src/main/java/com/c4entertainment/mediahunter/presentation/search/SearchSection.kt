@@ -1,18 +1,20 @@
 package com.c4entertainment.mediahunter.presentation.search
 
+import androidx.annotation.StringRes
+import com.c4entertainment.mediahunter.R
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogSection
 import com.c4entertainment.mediahunter.util.MovieTVFilterConfig
 
 /** One chip on the Search screen: TMDB movies or TV, or a [CatalogSection]. */
-enum class SearchSection(val label: String, val catalog: CatalogSection? = null) {
-    Movies("Movies"),
-    TvShows("TV Shows"),
-    Anime("Anime", CatalogSection.Anime),
-    Albums("Albums", CatalogSection.Albums),
-    Songs("Songs", CatalogSection.Songs),
-    Artists("Artists", CatalogSection.Artists),
-    Books("Books", CatalogSection.Books),
-    Games("Games", CatalogSection.Games);
+enum class SearchSection(@StringRes val labelRes: Int, val catalog: CatalogSection? = null) {
+    Movies(R.string.home_movies),
+    TvShows(R.string.home_tv_shows),
+    Anime(R.string.section_anime, CatalogSection.Anime),
+    Albums(R.string.section_albums, CatalogSection.Albums),
+    Songs(R.string.section_songs, CatalogSection.Songs),
+    Artists(R.string.section_artists, CatalogSection.Artists),
+    Books(R.string.section_books, CatalogSection.Books),
+    Games(R.string.section_games, CatalogSection.Games);
 
     /** The TMDB type for Movies and TV Shows, null for catalog sections. */
     val tmdbType: String?

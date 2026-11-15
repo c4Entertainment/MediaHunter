@@ -70,20 +70,21 @@ val CatalogSection.torrentCategory: Category
     }
 
 /** Names the data source too, which RAWG's terms require; music also names its chart. */
+@Composable
 private fun CatalogSection.sourceLabel(chart: MusicChart): String = when (this) {
-        CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Artists -> {
-            val kind = label.lowercase()
-            val scope = when {
-                this == CatalogSection.Albums && chart.editorsPicks -> null
-                chart.genre != null -> chart.genre.label
-                else -> chart.region.label
-            }
-            if (scope == null) "Editor's picks · Deezer" else "Top $kind · $scope · Deezer"
+    CatalogSection.Albums, CatalogSection.Songs, CatalogSection.Artists -> {
+        val scope = when {
+            this == CatalogSection.Albums && chart.editorsPicks -> null
+            chart.genre != null -> chart.genre.label
+            else -> chart.region.label
         }
-        CatalogSection.Books -> "Trending today on Open Library"
-        CatalogSection.Games -> "Popular this year · data from RAWG.io"
-        CatalogSection.Anime -> "Trending on AniList"
+        if (scope == null) stringResource(R.string.catalog_caption_editors_picks)
+        else stringResource(R.string.catalog_caption_top, stringResource(labelRes).lowercase(), scope)
     }
+    CatalogSection.Books -> stringResource(R.string.catalog_caption_books)
+    CatalogSection.Games -> stringResource(R.string.catalog_caption_games)
+    CatalogSection.Anime -> stringResource(R.string.catalog_caption_anime)
+}
 
 /** The data source's name, for captions. */
 val CatalogSection.sourceName: String

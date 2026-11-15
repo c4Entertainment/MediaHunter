@@ -1,5 +1,6 @@
 package com.c4entertainment.mediahunter.presentation.movie_info
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -78,9 +79,14 @@ fun MovieDetailsPoster(movie: Movie, modifier: Modifier = Modifier) {
 @Composable
 fun MovieDetailsFacts(movie: Movie, details: MovieDetails?, modifier: Modifier = Modifier) {
     val facts = buildList {
-        if (movie.voteAverage > 0) add("\u2605 " + "%.1f".format(movie.voteAverage))
+        if (movie.voteAverage > 0) add(stringResource(R.string.details_rating, "%.1f".format(movie.voteAverage)))
         movie.releaseDate.take(4).takeIf { it.length == 4 }?.let { add(it) }
-        details?.runtime?.takeIf { it > 0 }?.let { add("${it / 60}h ${it % 60}m".removePrefix("0h ")) }
+        details?.runtime?.takeIf { it > 0 }?.let {
+            add(
+                if (it >= 60) stringResource(R.string.details_runtime_hm, it / 60, it % 60)
+                else stringResource(R.string.details_runtime_m, it)
+            )
+        }
         details?.genres?.mapNotNull { it.name?.takeIf(String::isNotBlank) }?.let { addAll(it) }
     }
     if (facts.isEmpty()) return

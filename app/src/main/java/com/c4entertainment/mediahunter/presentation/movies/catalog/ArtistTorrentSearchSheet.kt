@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.presentation.movies.catalog
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -77,24 +79,28 @@ fun ArtistTorrentSearchSheet(
             Text(
                 text = artist.name,
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .semantics { heading() }
             )
 
             ListItem(
-                headlineContent = { Text("Discography") },
-                supportingContent = { Text("Complete collections") },
+                headlineContent = { Text(stringResource(R.string.artist_discography)) },
+                supportingContent = { Text(stringResource(R.string.artist_discography_summary)) },
                 modifier = Modifier.clickable { onSearch("${artist.name} discography") }
             )
             ListItem(
-                headlineContent = { Text("Everything by ${artist.name}") },
+                headlineContent = { Text(stringResource(R.string.artist_everything_by, artist.name)) },
                 trailingContent = { downloadButton(artist.name) },
                 modifier = Modifier.clickable { onSearch(artist.name) }
             )
 
             Text(
-                text = "Albums",
+                text = stringResource(R.string.artist_albums),
                 style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .semantics { heading() }
             )
             val result = albums
             when {
@@ -105,18 +111,18 @@ fun ArtistTorrentSearchSheet(
 
                 result.isFailure -> Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Text(
-                        text = result.exceptionOrNull()?.message ?: "Couldn't load albums",
+                        text = result.exceptionOrNull()?.message ?: stringResource(R.string.artist_albums_failed),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error,
                     )
-                    TextButton(onClick = { attempt++ }) { Text("Retry") }
+                    TextButton(onClick = { attempt++ }) { Text(stringResource(R.string.state_retry)) }
                 }
 
                 else -> {
                     val list = result.getOrNull().orEmpty()
                     if (list.isEmpty()) {
                         Text(
-                            text = "No albums found",
+                            text = stringResource(R.string.artist_no_albums),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         )
@@ -147,8 +153,11 @@ fun ArtistTorrentSearchSheet(
     }
 }
 
-private fun String.displayName() = when (this) {
-    "ep" -> "EP"
-    "compile" -> "Compilation"
-    else -> "Album"
-}
+@Composable
+private fun String.displayName() = stringResource(
+    when (this) {
+        "ep" -> R.string.album_type_ep
+        "compile" -> R.string.album_type_compilation
+        else -> R.string.album_type_album
+    }
+)

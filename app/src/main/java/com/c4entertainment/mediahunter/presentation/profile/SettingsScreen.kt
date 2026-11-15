@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.presentation.profile
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -108,7 +110,7 @@ fun SettingsScreen(
                 title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -333,7 +335,7 @@ private fun AppearanceSettings(
 private fun homeSectionLabel(id: String): String = when (id) {
     MovieTVFilterConfig.MOVIE -> stringResource(R.string.home_movies)
     MovieTVFilterConfig.TV -> stringResource(R.string.home_tv_shows)
-    else -> HomeSections.catalogSection(id)?.label ?: id
+    else -> HomeSections.catalogSection(id)?.labelRes?.let { stringResource(it) } ?: id
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -466,7 +468,9 @@ private fun SectionTitle(text: String) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 4.dp),
+        modifier = Modifier
+            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 4.dp)
+            .semantics { heading() },
     )
 }
 

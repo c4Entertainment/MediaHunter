@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.presentation.search
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -137,7 +139,7 @@ fun SearchScreen(
 
                     active.section.tmdbType != null -> MovieResults(
                         movies = movies,
-                        sectionLabel = active.section.label,
+                        sectionLabel = stringResource(active.section.labelRes),
                         useGrid = useGrid,
                         onClick = { id ->
                             navController.navigate("movie/${active.section.tmdbType}/$id")
@@ -155,7 +157,7 @@ fun SearchScreen(
 
                             is CatalogSearchResult.Success ->
                                 if (result.items.isEmpty() || catalog == null) {
-                                    NoResults(active.section.label)
+                                    NoResults(stringResource(active.section.labelRes))
                                 } else {
                                     CatalogResultsGrid(
                                         section = catalog,
@@ -244,7 +246,7 @@ private fun SearchSectionChips(
                 selected = selected == section,
                 onSelectedChange = { onSelected(section) },
             ) {
-                Text(text = section.label)
+                Text(text = stringResource(section.labelRes))
             }
         }
     }
@@ -277,6 +279,7 @@ private fun RecentSearches(
                 Text(
                     text = stringResource(R.string.search_recent_title),
                     style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.semantics { heading() },
                 )
                 TextButton(onClick = onClear) {
                     Text(stringResource(R.string.search_recent_clear))
@@ -289,13 +292,10 @@ private fun RecentSearches(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onSelected(query) }
+                    .clickable(onClickLabel = stringResource(R.string.search_recent_item, query)) { onSelected(query) }
                     .padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
-                Icon(
-                    Icons.Default.History,
-                    contentDescription = stringResource(R.string.search_recent_item, query),
-                )
+                Icon(Icons.Default.History, contentDescription = null)
                 Text(text = query, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }

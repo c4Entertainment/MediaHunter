@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.presentation.movie_info
 
+import com.c4entertainment.mediahunter.R
+import androidx.compose.ui.res.stringResource
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
@@ -141,8 +143,7 @@ fun ActorCard(actor: Cast) {
         modifier = Modifier
             .padding(4.dp)
             .clickable(
-                indication = LocalIndication.current,
-                interactionSource = remember { MutableInteractionSource() },
+                onClickLabel = stringResource(R.string.details_actor_search, actor.name ?: ""),
                 onClick = { context.startActivity(launchResourceIntent) }
             )
     ) {
@@ -150,7 +151,7 @@ fun ActorCard(actor: Cast) {
                 model = "https://image.tmdb.org/t/p/w300${actor.profilePath}",
                 placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
                 error = painterResource(id = android.R.drawable.ic_menu_gallery),
-                contentDescription = actor.name,
+                contentDescription = null,
                 modifier = Modifier
 //                    .padding(4.dp)
                     .height(200.dp)

@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.presentation.movie_info
 
+import com.c4entertainment.mediahunter.R
+import androidx.compose.ui.res.stringResource
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
@@ -46,7 +48,7 @@ fun MovieDetailsScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val context = LocalContext.current
     var showTvTorrentSheet by remember { mutableStateOf(false) }
-    val pagerState = rememberPagerState { viewModel.tabs.size }
+    val pagerState = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
     // The target lets TorrentSearch look up by IMDb ID and hide releases of
     // other titles, years or episodes.
@@ -74,7 +76,7 @@ fun MovieDetailsScreen(
             // Details tab only, so it never covers the video player.
             if (movie != null && pagerState.currentPage == 0) {
                 ExtendedFloatingActionButton(
-                    text = { Text("Find torrents") },
+                    text = { Text(stringResource(R.string.details_find_torrents)) },
                     icon = { Icon(Icons.Filled.Download, contentDescription = null) },
                     // Shrinks to the icon once scrolling hides the top bar.
                     expanded = scrollBehavior.state.collapsedFraction < 0.5f,
@@ -131,9 +133,9 @@ fun MovieDetailsScreen(
                 .padding(innerPadding)
         ) {
             PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-                viewModel.tabs.forEachIndexed { index, title ->
+                listOf(R.string.details_tab_about, R.string.details_tab_videos).forEachIndexed { index, titleRes ->
                     Tab(
-                        text = { Text(title) },
+                        text = { Text(stringResource(titleRes)) },
                         selected = pagerState.currentPage == index,
                         onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
                     )

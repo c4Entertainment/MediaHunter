@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.components
 
+import com.c4entertainment.mediahunter.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -56,7 +58,9 @@ fun PasswordField(
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null
+                    contentDescription = stringResource(
+                        if (passwordIsVisible) R.string.password_hide else R.string.password_show
+                    )
                 )
             }
         }

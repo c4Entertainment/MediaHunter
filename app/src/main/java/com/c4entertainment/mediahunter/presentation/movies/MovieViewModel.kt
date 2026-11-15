@@ -243,7 +243,7 @@ class MovieViewModel @Inject constructor(
                 .onFailure { error ->
                     _catalogState.value = CatalogUiState(
                         items = cached,
-                        error = error.message ?: "Couldn't load ${section.label.lowercase()}",
+                        error = error.message ?: "Couldn't load",
                     )
                 }
         }

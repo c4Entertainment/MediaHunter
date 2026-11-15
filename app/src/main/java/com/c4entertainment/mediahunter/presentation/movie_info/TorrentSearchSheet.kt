@@ -1,5 +1,10 @@
 package com.c4entertainment.mediahunter.presentation.movie_info
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import com.c4entertainment.mediahunter.R
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -55,9 +60,11 @@ fun TvTorrentSearchSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Text(
-            text = "Find torrents",
+            text = stringResource(R.string.details_find_torrents),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .semantics { heading() }
         )
 
         LazyColumn {
@@ -65,7 +72,7 @@ fun TvTorrentSearchSheet(
                 item {
                     val tag = episodeTag(latestEpisode.season, latestEpisode.episode)
                     ListItem(
-                        headlineContent = { Text("Latest episode") },
+                        headlineContent = { Text(stringResource(R.string.tv_latest_episode)) },
                         supportingContent = {
                             Text(listOfNotNull(tag, latestEpisode.name, latestEpisode.airDate).joinToString(" · "))
                         },
@@ -78,7 +85,7 @@ fun TvTorrentSearchSheet(
 
             item {
                 ListItem(
-                    headlineContent = { Text("Complete series") },
+                    headlineContent = { Text(stringResource(R.string.tv_complete_series)) },
                     supportingContent = { Text(torrentQuery(title)) },
                     modifier = Modifier.clickable { onSearch(torrentQuery(title), null, null) }
                 )
@@ -89,11 +96,11 @@ fun TvTorrentSearchSheet(
 
                 ListItem(
                     headlineContent = { Text(season.name) },
-                    supportingContent = { Text("${season.episodeCount} episodes") },
+                    supportingContent = { Text(pluralStringResource(R.plurals.episode_count, season.episodeCount, season.episodeCount)) },
                     trailingContent = {
                         Icon(
                             imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = if (isExpanded) "Collapse" else "Expand"
+                            contentDescription = stringResource(if (isExpanded) R.string.tv_collapse else R.string.tv_expand)
                         )
                     },
                     modifier = Modifier.clickable {
@@ -112,7 +119,7 @@ fun TvTorrentSearchSheet(
                             onClick = {
                                 onSearch(torrentQuery(title, seasonTag(season.number)), season.number, null)
                             },
-                            label = { Text("Whole season") }
+                            label = { Text(stringResource(R.string.tv_whole_season)) }
                         )
                         for (episode in 1..season.episodeCount) {
                             AssistChip(
@@ -123,7 +130,7 @@ fun TvTorrentSearchSheet(
                                         episode,
                                     )
                                 },
-                                label = { Text("E%02d".format(episode)) }
+                                label = { Text(stringResource(R.string.episode_short, "%02d".format(episode))) }
                             )
                         }
                     }

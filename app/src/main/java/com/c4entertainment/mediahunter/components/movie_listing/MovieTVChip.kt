@@ -1,5 +1,7 @@
 package com.c4entertainment.mediahunter.components.movie_listing
 
+import com.c4entertainment.mediahunter.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -44,7 +46,7 @@ fun MovieTVChip(
                         selected = selectedSection == null && movieTV == id,
                         onSelectedChange = if (isMovie) toggleMovie else toggleTV,
                     ) {
-                        Text(text = if (isMovie) "Movies" else "TV Shows")
+                        Text(text = stringResource(if (isMovie) R.string.home_movies else R.string.home_tv_shows))
                     }
                 }
 
@@ -52,7 +54,7 @@ fun MovieTVChip(
                     selected = selectedSection == section,
                     onSelectedChange = { onSectionSelected(section) },
                 ) {
-                    Text(text = section.label)
+                    Text(text = stringResource(section.labelRes))
                 }
             }
         }

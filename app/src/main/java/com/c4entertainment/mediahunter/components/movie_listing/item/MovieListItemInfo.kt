@@ -31,7 +31,7 @@ fun MovieListItemInfo(
         painter?.let{
             Icon(
                 painter = painter,
-                contentDescription = "Heart Icon",
+                contentDescription = null,
                 tint = Color.Red
             )
 

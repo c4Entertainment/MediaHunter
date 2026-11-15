@@ -1,5 +1,9 @@
 package com.c4entertainment.mediahunter.presentation.movies.catalog
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import com.c4entertainment.mediahunter.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -37,21 +41,25 @@ fun AnimeTorrentSearchSheet(
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .semantics { heading() }
             )
 
             ListItem(
-                headlineContent = { Text("Whole series") },
-                supportingContent = { Text("Batches and every episode") },
+                headlineContent = { Text(stringResource(R.string.anime_whole_series)) },
+                supportingContent = { Text(stringResource(R.string.anime_whole_series_summary)) },
                 modifier = Modifier.clickable { onSearch(torrentQuery(item.searchTerms), null) }
             )
 
             val episodes = anime.availableEpisodes ?: 0
             if (episodes > 0) {
                 Text(
-                    text = "Episodes",
+                    text = stringResource(R.string.anime_episodes),
                     style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .semantics { heading() }
                 )
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -65,7 +73,7 @@ fun AnimeTorrentSearchSheet(
                         AssistChip(
                             // Fansub releases are named "Title - 05".
                             onClick = { onSearch(torrentQuery(item.searchTerms, number), episode) },
-                            label = { Text("E$number") }
+                            label = { Text(stringResource(R.string.episode_short, number)) }
                         )
                     }
                 }

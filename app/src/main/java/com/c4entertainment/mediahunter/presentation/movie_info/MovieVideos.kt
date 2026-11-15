@@ -1,5 +1,6 @@
 package com.c4entertainment.mediahunter.presentation.movie_info
 
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.LocalIndication
@@ -66,8 +67,7 @@ fun MovieVideos(
                                     .clip(shape = RoundedCornerShape(30.dp))
                                     .padding(8.dp)
                                     .clickable(
-                                        indication = LocalIndication.current,
-                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClickLabel = stringResource(R.string.details_play_video, videos[index].name ?: ""),
                                         onClick = {
                                             vidId.value = videos[index].key ?: ""
                                             showVideo.value = true
@@ -78,7 +78,7 @@ fun MovieVideos(
                                     model = "https://img.youtube.com/vi/${videos[index].key ?: ""}/0.jpg",
                                     placeholder = painterResource(id = R.drawable.baseline_movie_24),
                                     error = painterResource(R.drawable.baseline_movie_24),
-                                    contentDescription = "Youtube Thumbnail",
+                                    contentDescription = null,
                                     contentScale = ContentScale.FillWidth,
                                     modifier = Modifier
                                         .fillMaxHeight(h)

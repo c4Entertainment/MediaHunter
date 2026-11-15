@@ -44,8 +44,6 @@ class MovieDetailsViewModel @Inject constructor(
                 initialValue = SettingsUiState.Loading,
             )
 
-    val tabs = listOf("About", "Videos")
-
     fun toggleShowVideos(show: Boolean) {
         viewModelScope.launch {
             userDataRepository.toggleShowVideos(show)
