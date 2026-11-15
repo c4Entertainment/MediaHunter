@@ -8,14 +8,14 @@ import com.c4entertainment.mediahunter.domain.model.movie_details.ReleaseEntry
 import com.c4entertainment.mediahunter.domain.repository.UserSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -57,15 +57,22 @@ class ReleasesViewModel @Inject constructor(
     private val refreshTick = MutableStateFlow(0)
     private var handledTick = 0
 
+    /** The chosen kinds; null until the stored choice arrives. Taps update it before the save lands. */
+    private val kindsFlow = MutableStateFlow<Set<Release.Kind>?>(null)
+
     init {
-        val kinds = settings.userSettings
-            .map { s -> s.releaseKinds.mapNotNull { n -> Release.Kind.entries.firstOrNull { it.name == n } }.toSet() }
-            .map { it.ifEmpty { DEFAULT_KINDS } }
-            .distinctUntilChanged()
         viewModelScope.launch {
-            combine(_state.map { it.weekStart }.distinctUntilChanged(), kinds, refreshTick) { week, k, tick ->
-                Triple(week, k, tick)
-            }.collectLatest { (week, k, tick) -> load(week, k, refresh = tick != handledTick) }
+            val stored = settings.userSettings.first().releaseKinds
+                .mapNotNull { n -> Release.Kind.entries.firstOrNull { it.name == n } }.toSet()
+            kindsFlow.compareAndSet(null, stored.ifEmpty { DEFAULT_KINDS })
+        }
+        viewModelScope.launch {
+            combine(
+                _state.map { it.weekStart }.distinctUntilChanged(),
+                kindsFlow.filterNotNull(),
+                refreshTick,
+            ) { week, k, tick -> Triple(week, k, tick) }
+                .collectLatest { (week, k, tick) -> load(week, k, refresh = tick != handledTick) }
         }
     }
 
@@ -91,10 +98,11 @@ class ReleasesViewModel @Inject constructor(
     fun goToThisWeek() = _state.update { it.copy(weekStart = weekStartOf(LocalDate.now())) }
 
     fun toggleKind(kind: Release.Kind) {
-        val current = _state.value.kinds
+        val current = kindsFlow.value ?: return
         val next = if (kind in current) current - kind else current + kind
         // At least one kind stays on, or the calendar would always be empty.
         if (next.isEmpty()) return
+        kindsFlow.value = next
         viewModelScope.launch { settings.setReleaseKinds(next.map { it.name }.toSet()) }
     }
 

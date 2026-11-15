@@ -62,6 +62,7 @@ data class ReleaseEntry(
     val backdropPath: String?,
     val overview: String?,
     val year: String?,
+    val popularity: Double,
     val kind: Release.Kind,
     val date: java.time.LocalDate,
 )

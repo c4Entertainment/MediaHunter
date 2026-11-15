@@ -53,7 +53,10 @@ class ReleasesRepository @Inject constructor(
                 to = end.toString(),
                 page = page,
             )
-            response.results.orEmpty().forEach { movies.putIfAbsent(it.id, it) }
+            response.results.orEmpty()
+                // Drop obscure titles: little voted on and little looked at.
+                .filter { (it.voteCount ?: 0) >= 5 || (it.popularity ?: 0.0) >= 5.0 }
+                .forEach { movies.putIfAbsent(it.id, it) }
             val lastPage = response.totalPages ?: page
         } while (++page <= minOf(lastPage, MAX_PAGES))
 
@@ -76,13 +79,14 @@ class ReleasesRepository @Inject constructor(
                             backdropPath = movie.backdropPath?.takeIf { it.isNotBlank() },
                             overview = movie.overview?.takeIf { it.isNotBlank() },
                             year = movie.releaseDate?.take(4)?.takeIf { it.length == 4 },
+                            popularity = movie.popularity ?: 0.0,
                             kind = release.kind,
                             date = date,
                         )
                     }
                 }
             }.awaitAll().flatten()
-        }.sortedWith(compareBy<ReleaseEntry> { it.date }.thenBy { it.title.lowercase() })
+        }.sortedWith(compareBy<ReleaseEntry> { it.date }.thenByDescending { it.popularity })
     }
 
     private val Release.Kind.tmdbTypes: List<Int>
@@ -93,7 +97,7 @@ class ReleasesRepository @Inject constructor(
         }
 
     private companion object {
-        const val MAX_PAGES = 5
+        const val MAX_PAGES = 3
         const val CONCURRENCY = 6
         const val CACHE_SIZE = 300
     }
