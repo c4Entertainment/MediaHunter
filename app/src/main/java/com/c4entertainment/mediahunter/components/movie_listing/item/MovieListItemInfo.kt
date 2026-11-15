@@ -32,7 +32,7 @@ fun MovieListItemInfo(
             Icon(
                 painter = painter,
                 contentDescription = null,
-                tint = Color.Red
+                tint = MaterialTheme.colorScheme.error
             )
 
             HorizontalDivider(modifier = Modifier.width(6.dp))

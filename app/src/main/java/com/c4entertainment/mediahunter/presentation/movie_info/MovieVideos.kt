@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -64,7 +63,7 @@ fun MovieVideos(
                                 modifier = Modifier
                                     .requiredWidth(w.dp)
                                     .requiredHeight(h.dp)
-                                    .clip(shape = RoundedCornerShape(30.dp))
+                                    .clip(shape = MaterialTheme.shapes.extraLarge)
                                     .padding(8.dp)
                                     .clickable(
                                         onClickLabel = stringResource(R.string.details_play_video, videos[index].name ?: ""),
