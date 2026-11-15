@@ -102,18 +102,22 @@ fun MovieDetails(
                                 }
 
 
-                            var date = movie.releaseDate
-                            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
-                                val d = LocalDate.parse(date)
-                                val formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
-                                date = d.format(formatter)
+                            val date = movie.releaseDate?.takeIf { it.isNotBlank() }?.let { raw ->
+                                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+                                    runCatching {
+                                        LocalDate.parse(raw)
+                                            .format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))
+                                    }.getOrNull()
+                                } else raw
                             }
 
-                            item {
-                                Text(
-                                    text = "Release Date: $date",
-                                    Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-                                )
+                            if (date != null) {
+                                item {
+                                    Text(
+                                        text = "Release Date: $date",
+                                        Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                                    )
+                                }
                             }
 
                             state.movieDetails?.genres?.let { genres ->
