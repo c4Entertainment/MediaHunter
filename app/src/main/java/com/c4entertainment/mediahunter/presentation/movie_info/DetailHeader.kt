@@ -365,12 +365,14 @@ fun <T> LazyListScope.detailRow(
     title: @Composable () -> String,
     items: List<T>,
     itemKey: (T) -> Any,
+    header: (@Composable () -> Unit)? = null,
     card: @Composable (T) -> Unit,
 ) {
     if (items.isEmpty()) return
     item(key = key) {
         Column(Modifier.fillMaxWidth()) {
             DetailSectionTitle(title())
+            header?.invoke()
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),

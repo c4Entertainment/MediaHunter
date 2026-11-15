@@ -31,7 +31,7 @@ okhttp = "5.5.0"
 retrofit = "3.0.0"
 
 # Misc
-youtubePlayer = "13.0.0"
+youtubePlayer = "13.1.0"
 
 # Testing
 espresso = "3.7.0"

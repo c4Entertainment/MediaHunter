@@ -141,6 +141,8 @@
     <string name="details_status_pilot">Pilot</string>
     <string name="details_next_up">Next up</string>
     <string name="details_videos">Videos</string>
+    <string name="video_close">Close video</string>
+    <string name="video_playing">Playing</string>
     <string name="details_more_like_this">More like this</string>
     <string name="details_cast">Cast</string>
     <string name="details_episode_tag">S%1$d E%2$d</string>

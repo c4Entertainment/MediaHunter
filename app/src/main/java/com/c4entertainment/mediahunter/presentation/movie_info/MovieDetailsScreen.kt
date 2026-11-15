@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -34,7 +35,6 @@ import com.c4entertainment.mediahunter.components.MediaCard
 import com.c4entertainment.mediahunter.domain.model.movie_details.Release
 import com.c4entertainment.mediahunter.domain.model.movie_details.TitleDetails
 import com.c4entertainment.mediahunter.domain.model.movie_details.TvEpisode
-import com.c4entertainment.mediahunter.util.Constants.VIDEO_ID
 import com.c4entertainment.mediahunter.util.TmdbImage
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -75,6 +75,7 @@ fun MovieDetailsScreen(
                 seed = seed,
                 isRefreshing = state.isRefreshing,
                 onRefresh = viewModel::load,
+                viewModel = viewModel,
                 onFindTorrents = findTorrents ?: {},
                 openTitle = openTitle,
                 openSeason = openSeason,
@@ -110,6 +111,7 @@ private fun DetailsList(
     seed: androidx.compose.ui.graphics.Color?,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
+    viewModel: MovieDetailsViewModel,
     onFindTorrents: () -> Unit,
     openTitle: (type: String, id: Int) -> Unit,
     openSeason: (tvId: Int, season: Int) -> Unit,
@@ -192,20 +194,34 @@ private fun DetailsList(
             detailRow(
                 key = "videos",
                 title = { stringResource(R.string.details_videos) },
-                items = details.videos,
+                items = details.videos.filter { !it.key.isNullOrBlank() },
                 itemKey = { it.key.orEmpty() },
-            ) { video ->
-                MediaCard(
-                    title = video.name.orEmpty(),
-                    imageUrl = "https://img.youtube.com/vi/${video.key}/hqdefault.jpg",
-                    aspectRatio = 16f / 9f,
-                    onClick = {
-                        context.startActivity(
-                            Intent(context, FullscreenActivity::class.java).putExtra(VIDEO_ID, video.key),
+                header = viewModel.playingVideoId?.let { playing ->
+                    {
+                        VideoPlayerHeader(
+                            videoId = playing,
+                            name = details.videos.firstOrNull { it.key == playing }?.name.orEmpty(),
+                            startSecond = { viewModel.playbackSecond },
+                            autoplay = { viewModel.autoplay },
+                            onStarted = { viewModel.autoplay = false },
+                            onSecond = { viewModel.playbackSecond = it },
+                            onClose = viewModel::stopPlaying,
                         )
-                    },
-                    modifier = Modifier.width(LandscapeCardWidth),
-                )
+                    }
+                },
+            ) { video ->
+                val key = video.key.orEmpty()
+                val playing = key == viewModel.playingVideoId
+                Box(Modifier.width(LandscapeCardWidth)) {
+                    MediaCard(
+                        title = video.name.orEmpty(),
+                        imageUrl = "https://img.youtube.com/vi/$key/hqdefault.jpg",
+                        aspectRatio = 16f / 9f,
+                        onClick = { viewModel.play(key) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (playing) PlayingBadge(Modifier.align(Alignment.TopStart).padding(10.dp))
+                }
             }
 
             detailRow(

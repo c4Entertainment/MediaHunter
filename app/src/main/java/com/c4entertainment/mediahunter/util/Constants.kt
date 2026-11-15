@@ -26,8 +26,6 @@ object Constants {
 
     //Error Messages
 
-    const val VIDEO_START_DELAY = "VIDEO_START_DELAY"
-    const val VIDEO_ID = "VIDEO_ID"
 }
 
 /** TMDB image URLs. Lists use small sizes; Details keeps the full-size originals. */

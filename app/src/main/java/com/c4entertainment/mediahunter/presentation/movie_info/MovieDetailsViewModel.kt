@@ -24,6 +24,27 @@ class MovieDetailsViewModel @Inject constructor(
     var state by mutableStateOf(MovieDetailsState())
         private set
 
+    /** The video playing inline under "Videos", if any. */
+    var playingVideoId by mutableStateOf<String?>(null)
+        private set
+
+    /** Where the inline player was last, so a rebuilt player resumes there. */
+    var playbackSecond = 0f
+    /** True right after a tap, so the player starts rather than only cues. */
+    var autoplay = false
+
+    fun play(videoId: String) {
+        if (videoId == playingVideoId) return
+        playbackSecond = 0f
+        autoplay = true
+        playingVideoId = videoId
+    }
+
+    fun stopPlaying() {
+        playingVideoId = null
+        playbackSecond = 0f
+    }
+
     init {
         load()
     }
