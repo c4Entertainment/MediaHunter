@@ -3,10 +3,12 @@ package com.c4entertainment.mediahunter
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -77,6 +79,8 @@ class MainActivity : FragmentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Draw behind the system bars; each screen's Scaffold insets its own content.
+        enableEdgeToEdge()
         val splashScreen = installSplashScreen()
 
         var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)
@@ -137,7 +141,10 @@ class MainActivity : FragmentActivity() {
                     val currentDestination = navBackStackEntry?.destination?.route
 
                     Scaffold(
-                        snackbarHost = { SnackbarHost(snackbarHostState) },
+                        // This Scaffold's insets are zeroed, so lift the snackbar over the navigation bar here.
+                        snackbarHost = {
+                            SnackbarHost(snackbarHostState, Modifier.navigationBarsPadding())
+                        },
                         // Each screen's own Scaffold/top bar handles the system bars;
                         // insetting here too doubled the status bar gap.
                         contentWindowInsets = WindowInsets(0, 0, 0, 0),
