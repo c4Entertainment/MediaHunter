@@ -3,6 +3,9 @@ package com.c4entertainment.mediahunter.presentation.movies
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -59,6 +62,8 @@ fun MovieScreenTopBar(
     Column(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surface)
+            // The status bar stays covered; only the block below it slides away.
+            .windowInsetsPadding(WindowInsets.statusBars)
             .clipToBounds()
             .layout { measurable, constraints ->
                 val placeable = measurable.measure(constraints)
@@ -72,6 +77,7 @@ fun MovieScreenTopBar(
     ) {
         TopAppBar(
             title = { Text(text = stringResource(id = R.string.app_name)) },
+            windowInsets = WindowInsets(0, 0, 0, 0),
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.surface,
             ),
