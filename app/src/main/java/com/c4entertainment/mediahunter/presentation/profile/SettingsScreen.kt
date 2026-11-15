@@ -1,5 +1,22 @@
 package com.c4entertainment.mediahunter.presentation.profile
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.zIndex
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import kotlin.math.roundToInt
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
 import android.app.Activity
@@ -29,8 +46,6 @@ import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.RadioButton
@@ -423,30 +438,13 @@ private fun HomeSettings(
             title = { Text(stringResource(R.string.home_section_order)) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    order.forEachIndexed { index, id ->
-                        val label = homeSectionLabel(id)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(label, modifier = Modifier.weight(1f))
-                            IconButton(
-                                enabled = index > 0,
-                                onClick = { onOrderChange(order.moved(index, index - 1)) },
-                            ) {
-                                Icon(
-                                    Icons.Default.KeyboardArrowUp,
-                                    contentDescription = stringResource(R.string.home_move_up, label),
-                                )
-                            }
-                            IconButton(
-                                enabled = index < order.lastIndex,
-                                onClick = { onOrderChange(order.moved(index, index + 1)) },
-                            ) {
-                                Icon(
-                                    Icons.Default.KeyboardArrowDown,
-                                    contentDescription = stringResource(R.string.home_move_down, label),
-                                )
-                            }
-                        }
-                    }
+                    Text(
+                        text = stringResource(R.string.home_section_order_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                    DraggableSectionList(order = order, onOrderChange = onOrderChange)
                 }
             },
             confirmButton = {
@@ -461,6 +459,101 @@ private fun HomeSettings(
 
 private fun List<String>.moved(from: Int, to: Int): List<String> =
     toMutableList().apply { add(to, removeAt(from)) }
+
+/**
+ * Rows that reorder by dragging: grab the handle, or long-press anywhere on a row.
+ * The new order is saved when the drag ends. Screen readers get Move up / Move down actions.
+ */
+@Composable
+private fun DraggableSectionList(order: List<String>, onOrderChange: (List<String>) -> Unit) {
+    var items by remember(order) { mutableStateOf(order) }
+    var draggedId by remember { mutableStateOf<String?>(null) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    val rowHeight = 56.dp
+    val rowPx = with(LocalDensity.current) { rowHeight.toPx() }
+    val haptics = LocalHapticFeedback.current
+
+    fun start(id: String) {
+        draggedId = id
+        dragOffset = 0f
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+    fun drag(id: String, dy: Float) {
+        dragOffset += dy
+        val from = items.indexOf(id)
+        val to = (from + (dragOffset / rowPx).roundToInt()).coerceIn(0, items.lastIndex)
+        if (to != from) {
+            items = items.moved(from, to)
+            dragOffset -= (to - from) * rowPx
+            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+    }
+    fun end() {
+        if (draggedId != null && items != order) onOrderChange(items)
+        draggedId = null
+        dragOffset = 0f
+    }
+
+    Column {
+        items.forEachIndexed { index, id ->
+            key(id) {
+                val dragging = id == draggedId
+                val label = homeSectionLabel(id)
+                val moveUp = stringResource(R.string.home_move_up, label)
+                val moveDown = stringResource(R.string.home_move_down, label)
+                val elevation by animateDpAsState(if (dragging) 6.dp else 0.dp, label = "drag elevation")
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = if (dragging) MaterialTheme.colorScheme.surfaceContainerHighest
+                    else MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0f),
+                    shadowElevation = elevation,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(rowHeight)
+                        .zIndex(if (dragging) 1f else 0f)
+                        .graphicsLayer { translationY = if (dragging) dragOffset else 0f }
+                        .pointerInput(id) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { start(id) },
+                                onDrag = { change, amount -> change.consume(); drag(id, amount.y) },
+                                onDragEnd = ::end,
+                                onDragCancel = ::end,
+                            )
+                        }
+                        .semantics(mergeDescendants = true) {
+                            customActions = buildList {
+                                if (index > 0) add(CustomAccessibilityAction(moveUp) {
+                                    onOrderChange(items.moved(index, index - 1)); true
+                                })
+                                if (index < items.lastIndex) add(CustomAccessibilityAction(moveDown) {
+                                    onOrderChange(items.moved(index, index + 1)); true
+                                })
+                            }
+                        },
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.DragHandle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp)
+                                .pointerInput(id) {
+                                    detectDragGestures(
+                                        onDragStart = { start(id) },
+                                        onDrag = { change, amount -> change.consume(); drag(id, amount.y) },
+                                        onDragEnd = ::end,
+                                        onDragCancel = ::end,
+                                    )
+                                },
+                        )
+                        Text(label, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun SectionTitle(text: String) {

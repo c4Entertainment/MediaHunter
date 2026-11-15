@@ -160,6 +160,7 @@
     <string name="home_tv_shows">TV Shows</string>
     <string name="home_move_up">Move %1$s up</string>
     <string name="home_move_down">Move %1$s down</string>
+    <string name="home_section_order_hint">Drag the handle, or long-press a row, to move it.</string>
     <string name="home_reset">Reset</string>
     <string name="home_done">Done</string>
     <string name="music_editors_picks">Editor\'s picks</string>
