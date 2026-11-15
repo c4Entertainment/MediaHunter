@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.c4entertainment.mediahunter.R
 import com.c4entertainment.mediahunter.components.LoadingPlaceholders
+import com.c4entertainment.mediahunter.components.MediaCard
 import com.c4entertainment.mediahunter.components.movie_listing.PagingDataErrorWidget
 import com.c4entertainment.mediahunter.components.movie_listing.PagingDataNoResultsWidget
 import com.c4entertainment.mediahunter.domain.model.catalog.CatalogItem
@@ -160,48 +161,12 @@ fun CatalogResultsGrid(
             )
         }
         items(items, key = { it.id }) { item ->
-            CatalogGridItem(
-                item = item,
+            MediaCard(
+                title = item.title,
+                subtitle = item.subtitle,
+                imageUrl = item.imageUrl,
                 aspectRatio = section.imageAspectRatio,
-                modifier = Modifier
-                    .padding(start = 1.dp, end = 1.dp, bottom = 5.dp)
-                    .clickable { onItemClick(item) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun CatalogGridItem(
-    item: CatalogItem,
-    aspectRatio: Float,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier) {
-        AsyncImage(
-            model = item.imageUrl,
-            contentDescription = item.title,
-            contentScale = ContentScale.Crop,
-            placeholder = painterResource(id = R.drawable.baseline_image_24),
-            error = painterResource(id = R.drawable.baseline_image_24),
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(aspectRatio)
-                .clip(RoundedCornerShape(4.dp)),
-        )
-        Text(
-            text = item.title,
-            style = MaterialTheme.typography.titleSmall,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 4.dp),
-        )
-        item.subtitle?.takeIf { it.isNotBlank() }?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                onClick = { onItemClick(item) },
             )
         }
     }
