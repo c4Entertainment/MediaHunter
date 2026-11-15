@@ -4,6 +4,9 @@ data class TvSeason(
     val number: Int,
     val name: String,
     val episodeCount: Int,
+    val posterPath: String? = null,
+    /** yyyy-MM-dd */
+    val airDate: String? = null,
 )
 
 /** One episode, e.g. the latest one to air. */
@@ -13,10 +16,8 @@ data class TvEpisode(
     val name: String?,
     /** yyyy-MM-dd */
     val airDate: String?,
+    val overview: String? = null,
+    val runtime: Int? = null,
+    val stillPath: String? = null,
 )
 
-/** What the torrent sheet needs about a show. */
-data class TvSeasonsInfo(
-    val seasons: List<TvSeason>,
-    val latestEpisode: TvEpisode?,
-)

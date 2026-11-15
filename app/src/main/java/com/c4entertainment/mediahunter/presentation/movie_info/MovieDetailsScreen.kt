@@ -1,190 +1,261 @@
 package com.c4entertainment.mediahunter.presentation.movie_info
 
-import com.c4entertainment.mediahunter.R
-import androidx.compose.ui.res.stringResource
-import android.util.Log
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.layout.Column
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.launch
-import com.prajwalch.torrentsearch.TorrentSearch
-import com.prajwalch.torrentsearch.domain.model.SearchTarget
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.c4entertainment.mediahunter.R
+import com.c4entertainment.mediahunter.components.ErrorMessage
+import com.c4entertainment.mediahunter.components.MediaCard
+import com.c4entertainment.mediahunter.domain.model.movie_details.TitleDetails
+import com.c4entertainment.mediahunter.domain.model.movie_details.TvEpisode
+import com.c4entertainment.mediahunter.util.Constants.VIDEO_ID
+import com.c4entertainment.mediahunter.util.TmdbImage
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailsScreen(
     id: String,
     type: String,
     viewModel: MovieDetailsViewModel,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    openTitle: (type: String, id: Int) -> Unit,
 ) {
-
-    val TAG = "MovieDetailsScreen"
-
     val state = viewModel.state
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val details = state.details
     val context = LocalContext.current
+    val list = rememberLazyListState()
+    val seed = rememberSeedColor(details?.posterPath?.let { TmdbImage.url(TmdbImage.GRID_POSTER, it) })
     var showTvTorrentSheet by remember { mutableStateOf(false) }
-    val pagerState = rememberPagerState { 2 }
-    val scope = rememberCoroutineScope()
-    // The target lets TorrentSearch look up by IMDb ID and hide releases of
-    // other titles, years or episodes.
-    val searchTorrents = { query: String, target: SearchTarget ->
-        context.startActivity(TorrentSearch.searchIntent(context, query, target = target))
+
+    val findTorrents: (() -> Unit)? = details?.let {
+        { if (it.isTv) showTvTorrentSheet = true else context.searchTorrents(it) }
     }
 
+    DetailPageFrame(
+        title = details?.title.orEmpty(),
+        list = list,
+        seed = seed,
+        tmdbUrl = tmdbUrl(type, id.toIntOrNull() ?: 0),
+        onBack = navigateBack,
+        onFindTorrents = findTorrents,
+    ) {
+        when {
+            details != null -> DetailsList(
+                details = details,
+                list = list,
+                seed = seed,
+                isRefreshing = state.isRefreshing,
+                onRefresh = viewModel::load,
+                onFindTorrents = findTorrents ?: {},
+                openTitle = openTitle,
+            )
 
-    Log.d(TAG, "MovieDetailsScreen: ${state.movieDetails})")
+            state.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                ErrorMessage(onRetry = viewModel::load)
+            }
 
+            else -> DetailLoading()
+        }
+    }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MovieDetailsTopBar(
-                title = state.movie?.title ?: "",
-                navigateBack = navigateBack,
-                scrollBehavior = scrollBehavior
+    if (showTvTorrentSheet && details != null) {
+        TvTorrentSearchSheet(
+            title = details.title,
+            seasons = details.seasons,
+            latestEpisode = details.lastEpisode,
+            onSearch = { season, episode ->
+                showTvTorrentSheet = false
+                context.searchTorrents(details, season, episode)
+            },
+            onDismiss = { showTvTorrentSheet = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DetailsList(
+    details: TitleDetails,
+    list: LazyListState,
+    seed: androidx.compose.ui.graphics.Color?,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    onFindTorrents: () -> Unit,
+    openTitle: (type: String, id: Int) -> Unit,
+) {
+    val context = LocalContext.current
+    val refreshState = rememberPullToRefreshState()
+    val barRoom = detailBarRoom()
+    val facts = buildList {
+        val directorLabel = if (details.isTv) R.string.details_created_by else R.string.details_director
+        details.directors.takeIf { it.isNotEmpty() }?.let { add(stringResource(directorLabel) to it.joinToString(", ")) }
+        details.writers.takeIf { it.isNotEmpty() }?.let { add(stringResource(R.string.details_writers) to it.joinToString(", ")) }
+        details.studios.takeIf { it.isNotEmpty() }?.let { add(stringResource(R.string.details_studios) to it.joinToString(", ")) }
+    }
+    val meta = metaLine(details)
+
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        state = refreshState,
+        modifier = Modifier.fillMaxSize(),
+        indicator = {
+            PullToRefreshDefaults.Indicator(
+                state = refreshState,
+                isRefreshing = isRefreshing,
+                // Below the floating bar, not under it.
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = barRoom),
             )
         },
-        floatingActionButton = {
-            val movie = state.movie
-            // Details tab only, so it never covers the video player.
-            if (movie != null && pagerState.currentPage == 0) {
-                ExtendedFloatingActionButton(
-                    text = { Text(stringResource(R.string.details_find_torrents)) },
-                    icon = { Icon(Icons.Filled.Download, contentDescription = null) },
-                    // Shrinks to the icon once scrolling hides the top bar.
-                    expanded = scrollBehavior.state.collapsedFraction < 0.5f,
-                    onClick = {
-                        if (type == "tv") {
-                            showTvTorrentSheet = true
-                        } else {
-                            searchTorrents(
-                                torrentQuery(movie.title, movie.releaseDate.take(4)),
-                                searchTarget(
-                                    kind = SearchTarget.Kind.Movie,
-                                    title = movie.title,
-                                    originalTitle = movie.originalTitle,
-                                    releaseDate = movie.releaseDate,
-                                    imdbId = state.movieDetails?.imdbId,
-                                ),
-                            )
-                        }
-                    },
+    ) {
+        LazyColumn(
+            state = list,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp),
+        ) {
+            item(key = "header") {
+                DetailHeader(
+                    title = details.title,
+                    tagline = details.tagline,
+                    meta = meta,
+                    posterUrl = details.posterPath?.let { TmdbImage.url(TmdbImage.GRID_POSTER, it) },
+                    backdropUrl = details.backdropPath?.let { TmdbImage.url(TmdbImage.BACKDROP_LARGE, it) },
+                    seed = seed,
+                    onFindTorrents = onFindTorrents,
                 )
             }
-        },
-    ) { innerPadding ->
+            details.overview?.let { overview ->
+                item(key = "overview") { DetailOverview(overview) }
+            }
+            item(key = "facts") { DetailFacts(genres = details.genres, facts = facts) }
 
-        val movie = state.movie
-        if (showTvTorrentSheet && movie != null) {
-            TvTorrentSearchSheet(
-                title = movie.title,
-                seasons = state.tvSeasons,
-                latestEpisode = state.latestEpisode,
-                onSearch = { query, season, episode ->
-                    showTvTorrentSheet = false
-                    searchTorrents(
-                        query,
-                        searchTarget(
-                            kind = SearchTarget.Kind.Series,
-                            title = movie.title,
-                            originalTitle = movie.originalTitle,
-                            releaseDate = movie.releaseDate,
-                            imdbId = state.movieDetails?.imdbId,
-                            season = season,
-                            episode = episode,
-                        ),
-                    )
-                },
-                onDismiss = { showTvTorrentSheet = false },
-            )
-        }
-
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding)
-        ) {
-            PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-                listOf(R.string.details_tab_about, R.string.details_tab_videos).forEachIndexed { index, titleRes ->
-                    Tab(
-                        text = { Text(stringResource(titleRes)) },
-                        selected = pagerState.currentPage == index,
-                        onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    )
+            if (details.isTv) {
+                detailRow(
+                    key = "next",
+                    title = { stringResource(R.string.details_next_up) },
+                    items = listOfNotNull(details.lastEpisode, details.nextEpisode).distinct(),
+                    itemKey = { "${it.season}-${it.episode}" },
+                ) { episode ->
+                    EpisodeCard(episode, fallbackImage = details.backdropPath) {
+                        context.searchTorrents(details, episode.season, episode.episode)
+                    }
                 }
             }
 
-            val ytVideos =
-                state.movieDetails?.videos?.results?.filter { videos -> videos.site == "YouTube" }?.reversed()
+            detailRow(
+                key = "videos",
+                title = { stringResource(R.string.details_videos) },
+                items = details.videos,
+                itemKey = { it.key.orEmpty() },
+            ) { video ->
+                MediaCard(
+                    title = video.name.orEmpty(),
+                    imageUrl = "https://img.youtube.com/vi/${video.key}/hqdefault.jpg",
+                    aspectRatio = 16f / 9f,
+                    onClick = {
+                        context.startActivity(
+                            Intent(context, FullscreenActivity::class.java).putExtra(VIDEO_ID, video.key),
+                        )
+                    },
+                    modifier = Modifier.width(LandscapeCardWidth),
+                )
+            }
 
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-            ) { page ->
-                when (page) {
-                    0 -> MovieDetails(
-                        state = state,
-                        isRefreshing = state.isLoading,
-                        viewModel = viewModel,
-                        id = id,
-                        type = type,
-                        modifier = Modifier.fillMaxSize(),
-                    )
+            detailRow(
+                key = "recommendations",
+                title = { stringResource(R.string.details_more_like_this) },
+                items = details.recommendations,
+                itemKey = { "${it.type}-${it.id}" },
+            ) { title ->
+                MediaCard(
+                    title = title.title,
+                    imageUrl = title.posterPath?.let { TmdbImage.url(TmdbImage.GRID_POSTER, it) },
+                    aspectRatio = 2f / 3f,
+                    subtitle = title.year,
+                    onClick = { openTitle(title.type, title.id) },
+                    modifier = Modifier.width(PosterCardWidth),
+                )
+            }
 
-                    else -> MovieVideos(
-                        modifier = Modifier.fillMaxSize(),
-                        movieVideos = ytVideos,
-                        navigateBack = navigateBack,
-                    )
-                }
+            castRow(details.cast) { name ->
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=${Uri.encode(name)}")))
             }
         }
     }
 }
 
-/** Describes the title being viewed so TorrentSearch can match releases to it exactly. */
-private fun searchTarget(
-    kind: SearchTarget.Kind,
-    title: String,
-    originalTitle: String,
-    releaseDate: String,
-    imdbId: String?,
-    season: Int? = null,
-    episode: Int? = null,
-) = SearchTarget(
-    kind = kind,
-    title = title,
-    alternativeTitles = listOf(originalTitle).filter { it.isNotBlank() && it != title },
-    year = releaseDate.take(4).toIntOrNull(),
-    imdbId = imdbId?.takeIf { it.isNotBlank() },
-    season = season,
-    episode = episode,
-)
+/** An episode as a landscape card: "S1 E3 · Title" over its air date. */
+@Composable
+fun EpisodeCard(episode: TvEpisode, fallbackImage: String?, onClick: () -> Unit) {
+    val tag = stringResource(R.string.details_episode_tag, episode.season, episode.episode)
+    MediaCard(
+        title = listOfNotNull(tag, episode.name).joinToString(" · "),
+        imageUrl = (episode.stillPath ?: fallbackImage)?.let { TmdbImage.url(TmdbImage.LIST_BACKDROP, it) },
+        aspectRatio = 16f / 9f,
+        subtitle = formatDate(episode.airDate),
+        onClick = onClick,
+        modifier = Modifier.width(LandscapeCardWidth),
+    )
+}
+
+/** "2024 · 2h 46m · PG-13 · ★ 8.2"; for a show "2010 – 2011 · 35m · ★ 6.2". */
+@Composable
+private fun metaLine(details: TitleDetails): String? {
+    val year = details.releaseDate.take(4).takeIf { it.length == 4 }
+    val years = if (details.isTv && year != null) {
+        val last = details.lastAirDate?.take(4)
+        when {
+            details.inProduction -> "$year – "
+            last != null && last != year -> "$year – $last"
+            else -> year
+        }
+    } else {
+        year
+    }
+    val parts = listOfNotNull(
+        years,
+        details.runtime?.let { runtimeText(it) },
+        details.certification,
+        details.voteAverage.takeIf { it > 0 }?.let { stringResource(R.string.details_rating, "%.1f".format(it)) },
+    )
+    return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
+}
+
+@Composable
+fun runtimeText(minutes: Int): String =
+    if (minutes >= 60) stringResource(R.string.details_runtime_hm, minutes / 60, minutes % 60)
+    else stringResource(R.string.details_runtime_m, minutes)
+
+/** "Mar 4, 2019" from TMDB's yyyy-MM-dd, or null. */
+fun formatDate(date: String?): String? =
+    date?.let { runCatching { LocalDate.parse(it).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) }.getOrNull() }
+
+@Composable
+fun episodeCountText(count: Int) = pluralStringResource(R.plurals.episode_count, count, count)

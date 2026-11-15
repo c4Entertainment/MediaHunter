@@ -1,5 +1,8 @@
 package com.c4entertainment.mediahunter.data.network.dto.movie_details
 
+import com.c4entertainment.mediahunter.data.network.apiresponses.MoviesResponse
+import com.c4entertainment.mediahunter.data.network.dto.tv.TvEpisodeDto
+import com.c4entertainment.mediahunter.data.network.dto.tv.TvSeasonDto
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -43,6 +46,53 @@ data class MovieDetailsDto(
     @field:Json(name = "videos") var videos: VideosDto? = null,
     @field:Json(name = "credits") var credits: CreditsDto? = null,
     // TV details have no top-level imdb_id; it comes from append_to_response=external_ids.
-    @field:Json(name = "external_ids") var externalIds: ExternalIdsDto? = null
+    @field:Json(name = "external_ids") var externalIds: ExternalIdsDto? = null,
 
+    // TV only.
+    @field:Json(name = "last_air_date") var lastAirDate: String? = null,
+    @field:Json(name = "in_production") var inProduction: Boolean? = null,
+    @field:Json(name = "episode_run_time") var episodeRunTime: List<Int> = listOf(),
+    @field:Json(name = "created_by") var createdBy: List<CreatedByDto> = listOf(),
+    @field:Json(name = "seasons") var seasons: List<TvSeasonDto> = listOf(),
+    @field:Json(name = "last_episode_to_air") var lastEpisodeToAir: TvEpisodeDto? = null,
+    @field:Json(name = "next_episode_to_air") var nextEpisodeToAir: TvEpisodeDto? = null,
+
+    // From append_to_response.
+    @field:Json(name = "recommendations") var recommendations: MoviesResponse? = null,
+    @field:Json(name = "release_dates") var releaseDates: ReleaseDatesDto? = null,
+    @field:Json(name = "content_ratings") var contentRatings: ContentRatingsDto? = null,
+)
+
+@JsonClass(generateAdapter = true)
+data class CreatedByDto(
+    @field:Json(name = "name") var name: String? = null,
+)
+
+/** A movie's certifications per country (append_to_response=release_dates). */
+@JsonClass(generateAdapter = true)
+data class ReleaseDatesDto(
+    @field:Json(name = "results") var results: List<CountryReleaseDatesDto> = listOf(),
+)
+
+@JsonClass(generateAdapter = true)
+data class CountryReleaseDatesDto(
+    @field:Json(name = "iso_3166_1") var country: String? = null,
+    @field:Json(name = "release_dates") var releaseDates: List<ReleaseDateDto> = listOf(),
+)
+
+@JsonClass(generateAdapter = true)
+data class ReleaseDateDto(
+    @field:Json(name = "certification") var certification: String? = null,
+)
+
+/** A show's ratings per country (append_to_response=content_ratings). */
+@JsonClass(generateAdapter = true)
+data class ContentRatingsDto(
+    @field:Json(name = "results") var results: List<ContentRatingDto> = listOf(),
+)
+
+@JsonClass(generateAdapter = true)
+data class ContentRatingDto(
+    @field:Json(name = "iso_3166_1") var country: String? = null,
+    @field:Json(name = "rating") var rating: String? = null,
 )

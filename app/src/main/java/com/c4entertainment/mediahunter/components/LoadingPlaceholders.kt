@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 
 /** Pulsing alpha for placeholders; static when the user turned animations off. */
 @Composable
-private fun rememberPulseAlpha(): State<Float> {
+internal fun rememberPulseAlpha(): State<Float> {
     val context = LocalContext.current
     val reduceMotion = remember {
         Settings.Global.getFloat(

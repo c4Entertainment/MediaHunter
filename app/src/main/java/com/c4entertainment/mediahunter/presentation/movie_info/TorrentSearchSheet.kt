@@ -30,6 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import android.content.Context
+import com.c4entertainment.mediahunter.domain.model.movie_details.TitleDetails
+import com.prajwalch.torrentsearch.TorrentSearch
+import com.prajwalch.torrentsearch.domain.model.SearchTarget
 import com.c4entertainment.mediahunter.domain.model.movie_details.TvEpisode
 import com.c4entertainment.mediahunter.domain.model.movie_details.TvSeason
 
@@ -46,6 +50,30 @@ private fun seasonTag(season: Int) = "S%02d".format(season)
 
 private fun episodeTag(season: Int, episode: Int) = "S%02dE%02d".format(season, episode)
 
+/**
+ * Opens TorrentSearch for a movie or a whole show, or for one season ([episode] null) or one
+ * episode of it. The target lets TorrentSearch look up by IMDb ID and hide releases of other
+ * titles, years or episodes.
+ */
+fun Context.searchTorrents(details: TitleDetails, season: Int? = null, episode: Int? = null) {
+    val query = when {
+        !details.isTv -> torrentQuery(details.title, details.releaseDate.take(4))
+        season == null -> torrentQuery(details.title)
+        episode == null -> torrentQuery(details.title, seasonTag(season))
+        else -> torrentQuery(details.title, episodeTag(season, episode))
+    }
+    val target = SearchTarget(
+        kind = if (details.isTv) SearchTarget.Kind.Series else SearchTarget.Kind.Movie,
+        title = details.title,
+        alternativeTitles = listOf(details.originalTitle).filter { it.isNotBlank() && it != details.title },
+        year = details.releaseDate.take(4).toIntOrNull(),
+        imdbId = details.imdbId,
+        season = season,
+        episode = episode,
+    )
+    startActivity(TorrentSearch.searchIntent(this, query, target = target))
+}
+
 /** Lets the user search torrents for a whole show, one season, or one episode. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +82,7 @@ fun TvTorrentSearchSheet(
     seasons: List<TvSeason>,
     latestEpisode: TvEpisode?,
     /** [season] and [episode] are null for the whole series, [episode] for a whole season. */
-    onSearch: (query: String, season: Int?, episode: Int?) -> Unit,
+    onSearch: (season: Int?, episode: Int?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var expandedSeason by remember { mutableStateOf<Int?>(null) }
@@ -78,7 +106,7 @@ fun TvTorrentSearchSheet(
                             Text(listOfNotNull(tag, latestEpisode.name, latestEpisode.airDate).joinToString(" · "))
                         },
                         modifier = Modifier.clickable {
-                            onSearch(torrentQuery(title, tag), latestEpisode.season, latestEpisode.episode)
+                            onSearch(latestEpisode.season, latestEpisode.episode)
                         }
                     )
                 }
@@ -88,7 +116,7 @@ fun TvTorrentSearchSheet(
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.tv_complete_series)) },
                     supportingContent = { Text(torrentQuery(title)) },
-                    modifier = Modifier.clickable { onSearch(torrentQuery(title), null, null) }
+                    modifier = Modifier.clickable { onSearch(null, null) }
                 )
             }
 
@@ -117,7 +145,7 @@ fun TvTorrentSearchSheet(
                         leading = {
                             AssistChip(
                                 onClick = {
-                                    onSearch(torrentQuery(title, seasonTag(season.number)), season.number, null)
+                                    onSearch(season.number, null)
                                 },
                                 label = { Text(stringResource(R.string.tv_whole_season)) }
                             )
@@ -125,11 +153,7 @@ fun TvTorrentSearchSheet(
                     ) { episode ->
                         AssistChip(
                             onClick = {
-                                onSearch(
-                                    torrentQuery(title, episodeTag(season.number, episode)),
-                                    season.number,
-                                    episode,
-                                )
+                                onSearch(season.number, episode)
                             },
                             label = { Text(stringResource(R.string.episode_short, "%02d".format(episode))) }
                         )

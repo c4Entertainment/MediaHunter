@@ -1,6 +1,5 @@
 package com.c4entertainment.mediahunter.presentation.movie_info
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,187 +7,41 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.c4entertainment.mediahunter.domain.repository.MovieRepository
-import com.c4entertainment.mediahunter.domain.repository.UserSettingsRepository
 import com.c4entertainment.mediahunter.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val repository: MovieRepository,
-    private val userDataRepository: UserSettingsRepository,
 ) : ViewModel() {
 
-    private val TAG = "MovieDetailsViewModel"
+    private val id = savedStateHandle.get<String>("id")?.toIntOrNull() ?: 0
+    private val type = savedStateHandle.get<String>("type") ?: "movie"
 
     var state by mutableStateOf(MovieDetailsState())
-
-    val settingsUiState: StateFlow<SettingsUiState> =
-        userDataRepository.userSettings
-            .map { userData ->
-                SettingsUiState.Success(
-                    settings = UserEditableSettings(
-                        showVideos = userData.showVideos,
-                    ),
-                )
-            }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Eagerly,
-                initialValue = SettingsUiState.Loading,
-            )
-
-    fun toggleShowVideos(show: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.toggleShowVideos(show)
-        }
-    }
-
-    fun toggleView(isGrid: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.useGrid(isGrid)
-        }
-    }
+        private set
 
     init {
-        val id = savedStateHandle.get<String>("id") ?: "0"
-        val type = savedStateHandle.get<String>("type") ?: "movie"
-
-        getMovie(id = id.toInt(), type = type)
-        if (type == "tv") getTvSeasons(id = id.toInt())
+        load()
     }
 
-    private fun getTvSeasons(id: Int) {
+    /** Loads the page; with content already shown, as a pull to refresh. */
+    fun load() {
+        val refreshing = state.details != null
+        state = state.copy(isLoading = !refreshing, isRefreshing = refreshing, error = null)
         viewModelScope.launch {
-            val result = repository.getTvSeasons(id = id)
-            if (result is Resource.Success) {
-                state = state.copy(
-                    tvSeasons = result.data?.seasons.orEmpty(),
-                    latestEpisode = result.data?.latestEpisode,
+            state = when (val result = repository.getTitleDetails(id = id, type = type)) {
+                is Resource.Success -> state.copy(details = result.data, isLoading = false, isRefreshing = false)
+                else -> state.copy(
+                    isLoading = false,
+                    isRefreshing = false,
+                    // A failed refresh keeps the page it already has.
+                    error = if (state.details == null) result.errorMessage ?: "An unexpected error occurred" else null,
                 )
-            } else {
-                Log.d(TAG, "getTvSeasons: ${result.errorMessage}")
             }
         }
     }
-
-
-    fun onEvent(event: MovieDetailsEvent) {
-        when (event) {
-            is MovieDetailsEvent.OnStart -> {}
-            is MovieDetailsEvent.OnRefresh -> {}
-        }
-    }
-
-    fun getMovie(
-        id: Int,
-        type: String
-    ) {
-        // A retry starts from the loading state, not the old error.
-        state = state.copy(error = null)
-        viewModelScope.launch {
-            repository
-                .getMovie(id = id, type = type)
-                .collect { result ->
-                    when (result) {
-                        is Resource.Success -> {
-                            result.data?.let { movie ->
-                                state = state.copy(
-                                    movie = movie,
-                                    isLoading = false,
-                                    error = null
-                                )
-                                Log.d(TAG, "getMovie ID: ${movie.id}")
-
-                                getMovieDetails(
-                                    id = movie.id,
-                                    type = movie.mediaType,
-                                    fetchFromNetwork = true)
-                            }
-                        }
-
-                        is Resource.Error -> {
-                            state = state.copy(
-                                error = result.errorMessage ?: "An unexpected error occurred",
-                                isLoading = false,
-                                movie = null
-                            )
-
-                        }
-
-                        is Resource.Loading -> {
-                            state = state.copy(isLoading = result.isLoading)
-                        }
-
-                        else -> Unit
-                    }
-
-                }
-        }
-
-    }
-
-    fun getMovieDetails(
-        id: Int,
-        type: String,
-        fetchFromNetwork: Boolean = false
-    ) {
-
-        viewModelScope.launch {
-            repository
-                .getMovieDetails(
-                    fetchFromNetwork = fetchFromNetwork,
-                    id = id,
-                    type = type
-                )
-                .collect { result ->
-                    when (result) {
-                        is Resource.Success -> {
-                            result.data?.let { movieDetails ->
-                                state = state.copy(
-                                    movieDetails = movieDetails
-                                )
-
-                                Log.d(TAG, "getMovieDetails id: ${movieDetails.id}")
-                            }
-                        }
-
-                        is Resource.Error -> {
-//                            state = state.copy(
-//                                error = result.errorMessage ?: "An unexpected error occurred",
-//                                isLoading = false,
-//                                movieDetails = null
-//                            )
-
-                        }
-
-                        is Resource.Loading -> {
-//                            state = state.copy(isLoading = result.isLoading)
-                        }
-                    }
-
-                }
-        }
-
-    }
-
-
-}
-
-/**
- * Represents the settings which the user can edit within the app.
- */
-data class UserEditableSettings(
-    val showVideos: Boolean = false,
-)
-
-sealed interface SettingsUiState {
-    object Loading : SettingsUiState
-    data class Success(val settings: UserEditableSettings) : SettingsUiState
 }

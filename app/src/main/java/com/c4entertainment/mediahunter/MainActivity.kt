@@ -207,6 +207,7 @@ class MainActivity : FragmentActivity() {
                     type = type ?: "",
                     viewModel = viewModel,
                     navigateBack = { navController.popBackStack() },
+                    openTitle = { type, id -> navController.navigate("movie/$type/$id") },
                 )
             }
             composable(Screen.SettingsScreen.route) {

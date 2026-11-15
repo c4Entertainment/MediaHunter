@@ -5,7 +5,6 @@ import com.c4entertainment.mediahunter.data.network.apiresponses.GenreListRespon
 import com.c4entertainment.mediahunter.data.network.apiresponses.MoviesResponse
 import com.c4entertainment.mediahunter.data.network.dto.movie_details.MovieDetails2Dto
 import com.c4entertainment.mediahunter.data.network.dto.movie_details.MovieDetailsDto
-import com.c4entertainment.mediahunter.data.network.dto.tv.TvSeasonsDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -52,20 +51,15 @@ interface TMDBMovieAPI {
         @Query("api_key") apiKey: String = API_KEY,
     ): MoviesResponse
 
+    /** Everything the Details page shows in one call; see [detailsAppend]. */
     @GET("{type}/{id}")
     suspend fun getMovieDetails(
         @Path("id") id: Int,
         @Path("type") type: String = "movie",
         @Query("language") language: String = "en-US",
-        @Query("append_to_response") appendToResponse: String = "videos,credits,external_ids",
+        @Query("append_to_response") appendToResponse: String = detailsAppend(type),
         @Query("api_key") apiKey: String = API_KEY,
     ): MovieDetailsDto
-
-    @GET("tv/{id}")
-    suspend fun getTvSeasons(
-        @Path("id") id: Int,
-        @Query("api_key") apiKey: String = API_KEY,
-    ): TvSeasonsDto
 
     @GET("find/{external_id}")
     suspend fun getMovieDetailsByExternalId(
@@ -79,5 +73,10 @@ interface TMDBMovieAPI {
     companion object {
         const val BASE_URL = "https://api.themoviedb.org/3/"
         const val API_KEY = BuildConfig.TMDB_API_KEY
+
+        /** Certifications live under release_dates for movies and content_ratings for shows. */
+        fun detailsAppend(type: String) =
+            "videos,credits,external_ids,recommendations," +
+                if (type == "tv") "content_ratings" else "release_dates"
     }
 }

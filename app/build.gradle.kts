@@ -105,6 +105,8 @@ dependencies {
     // Coil Compose
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    // Takes a poster's colour for the Details page's bar and glow.
+    implementation(libs.androidx.palette.ktx)
 
     // Dagger - Hilt
     implementation(libs.hilt.android)

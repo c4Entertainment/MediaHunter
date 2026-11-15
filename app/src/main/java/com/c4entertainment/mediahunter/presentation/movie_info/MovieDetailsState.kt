@@ -1,21 +1,12 @@
 package com.c4entertainment.mediahunter.presentation.movie_info
 
-import com.c4entertainment.mediahunter.domain.model.movie_details.MovieDetails
-import com.c4entertainment.mediahunter.domain.model.movie_details.TvEpisode
-import com.c4entertainment.mediahunter.domain.model.movie_details.TvSeason
-import com.c4entertainment.mediahunter.domain.model.movie.Movie
+import com.c4entertainment.mediahunter.domain.model.movie_details.TitleDetails
 
 data class MovieDetailsState(
-    val isLoading: Boolean = false,
+    val details: TitleDetails? = null,
+    /** First load, with nothing to show yet. */
+    val isLoading: Boolean = true,
+    /** Pull to refresh, over what is already shown. */
     val isRefreshing: Boolean = false,
-    val movie: Movie? = null,
     val error: String? = null,
-
-    val movieDetails: MovieDetails? = null,
-
-    // Only loaded for TV shows, to build season/episode torrent searches.
-    val tvSeasons: List<TvSeason> = emptyList(),
-    val latestEpisode: TvEpisode? = null,
-
-
 )

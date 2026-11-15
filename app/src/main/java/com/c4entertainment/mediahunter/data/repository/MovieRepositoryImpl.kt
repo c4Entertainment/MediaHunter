@@ -8,17 +8,11 @@ import androidx.paging.PagingData
 import com.c4entertainment.mediahunter.data.cache.MovieDatabase
 import com.c4entertainment.mediahunter.data.cache.entity.movie.MovieEntity
 import com.c4entertainment.mediahunter.data.cache.entity.search.MovieSearchEntity
-import com.c4entertainment.mediahunter.data.mappers.toMovie
-import com.c4entertainment.mediahunter.data.mappers.toMovieDetails
-import com.c4entertainment.mediahunter.data.mappers.toMovieDetailsEntity
+import com.c4entertainment.mediahunter.data.mappers.toTitleDetails
+import com.c4entertainment.mediahunter.domain.model.movie_details.TitleDetails
 import com.c4entertainment.mediahunter.data.network.MovieNetworkMediator
 import com.c4entertainment.mediahunter.data.network.SearchMovieNetworkMediator
 import com.c4entertainment.mediahunter.data.network.api.TMDBMovieAPI
-import com.c4entertainment.mediahunter.domain.model.movie.Movie
-import com.c4entertainment.mediahunter.domain.model.movie_details.MovieDetails
-import com.c4entertainment.mediahunter.domain.model.movie_details.TvEpisode
-import com.c4entertainment.mediahunter.domain.model.movie_details.TvSeason
-import com.c4entertainment.mediahunter.domain.model.movie_details.TvSeasonsInfo
 import com.c4entertainment.mediahunter.domain.repository.MovieRepository
 import com.c4entertainment.mediahunter.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -37,7 +31,6 @@ class MovieRepositoryImpl @Inject constructor(
     private val TAG = "MovieRepositoryImpl"
 
     private val movieDao = movieDatabase.movieDao
-    private val movieDetailsDao = movieDatabase.movieDetailsDao
     private val movieSearchDao = movieDatabase.movieSearchDao
 
     @OptIn(ExperimentalPagingApi::class)
@@ -73,150 +66,17 @@ class MovieRepositoryImpl @Inject constructor(
         ).flow
     }
 
-    override suspend fun getMovie(
-        id: Int,
-        type: String
-    ): Flow<Resource<Movie>> {
-        return flow {
-            emit(Resource.Loading(true))
+    override suspend fun getTitleDetails(id: Int, type: String): Resource<TitleDetails> =
+        networkCall { tmDBApi.getMovieDetails(id = id, type = type).toTitleDetails(type) }
 
-            Log.d(TAG, "id: $id")
-
-            val cacheMovie = movieDao.getMovie(id)
-
-//            if (cacheMovie == null) {
-//                emit(Resource.Error("Movie not found"))
-//                return@flow
-//            }
-
-            cacheMovie?.let {
-                emit(Resource.Success(cacheMovie.toMovie()))
-                emit(Resource.Loading(false))
-                return@flow
-            }
-
-            val networkMovie = try {
-                val response = tmDBApi.getMovieDetails(id = id, type = type)
-
-                response
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-                emit(Resource.Error(e.message ?: "An error occurred"))
-                null
-            } catch (e: HttpException) {
-                e.printStackTrace()
-                emit(Resource.Error(e.message ?: "An error occurred"))
-                null
-            }
-
-            val movie = Movie(
-                adult = networkMovie?.adult ?: false,
-                backdropPath = networkMovie?.backdropPath ?: "",
-                genreIds = networkMovie?.genres?.map { it.id!! } ?: listOf(),
-                id = networkMovie?.id ?: 0,
-                originalLanguage = networkMovie?.originalLanguage ?: "",
-                originalTitle = networkMovie?.originalTitle ?: "",
-                overview = networkMovie?.overview ?: "",
-                popularity = networkMovie?.popularity ?: 0.0,
-                posterPath = networkMovie?.posterPath ?: "",
-                releaseDate = networkMovie?.releaseDate ?: networkMovie?.firstAirDate ?: "",
-                title = networkMovie?.title ?: networkMovie?.name ?: "",
-                video = networkMovie?.video ?: false,
-                voteAverage = networkMovie?.voteAverage ?: 0.0,
-                voteCount = networkMovie?.voteCount ?: 0,
-                mediaType = networkMovie?.releaseDate?.let { "movie" }
-                    ?: networkMovie?.firstAirDate?.let { "tv" } ?: ""
-
-            )
-
-            emit(Resource.Success(movie))
-
-
-            emit(Resource.Loading(false))
-        }
-    }
-
-    override suspend fun getMovieDetails(
-        fetchFromNetwork: Boolean,
-        id: Int,
-        type: String
-    ): Flow<Resource<MovieDetails>> {
-        return flow {
-            emit(Resource.Loading(true))
-
-            Log.d(TAG, "imdbID: $id")
-
-            val cacheMovieDetails = movieDetailsDao.getMovieDetails(id)
-            cacheMovieDetails?.let {
-                emit(Resource.Success(cacheMovieDetails.toMovieDetails()))
-            }
-
-
-            val isNotInCache = cacheMovieDetails == null
-            val shouldJustLoadFromCache = !fetchFromNetwork && !isNotInCache
-            if (shouldJustLoadFromCache) {
-                emit(Resource.Loading(false))
-                return@flow
-            }
-
-            val networkMovieDetails = try {
-                val response = tmDBApi.getMovieDetails(id = id, type = type)
-
-                response
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-                emit(Resource.Error(e.message ?: "An error occurred"))
-                null
-            } catch (e: HttpException) {
-                e.printStackTrace()
-                emit(Resource.Error(e.message ?: "An error occurred"))
-                null
-            }
-
-            networkMovieDetails?.let {
-                movieDetailsDao.deleteMovieDetails(id)
-                movieDetailsDao.insertMovieDetails(it.toMovieDetailsEntity())
-            }
-
-            val data = movieDetailsDao.getMovieDetails(id)
-            if (data == null) {
-                emit(Resource.Error("An error occurred"))
-            } else {
-                emit(Resource.Success(data.toMovieDetails()))
-            }
-
-            emit(Resource.Loading(false))
-        }
-    }
-
-
-    override suspend fun getTvSeasons(id: Int): Resource<TvSeasonsInfo> {
-        return try {
-            val response = tmDBApi.getTvSeasons(id = id)
-            val seasons = response.seasons
-                // Season 0 holds specials, which torrents rarely name by season.
-                .filter { it.seasonNumber > 0 }
-                .map {
-                    TvSeason(
-                        number = it.seasonNumber,
-                        name = it.name ?: "Season ${it.seasonNumber}",
-                        episodeCount = it.episodeCount ?: 0,
-                    )
-                }
-            val latestEpisode = response.lastEpisodeToAir?.let { episode ->
-                val season = episode.seasonNumber?.takeIf { it > 0 } ?: return@let null
-                val number = episode.episodeNumber?.takeIf { it > 0 } ?: return@let null
-                TvEpisode(season, number, episode.name, episode.airDate)
-            }
-            Resource.Success(TvSeasonsInfo(seasons, latestEpisode))
+    private inline fun <T> networkCall(call: () -> T): Resource<T> =
+        try {
+            Resource.Success(call())
         } catch (e: IOException) {
             Resource.Error(e.message ?: "An error occurred")
         } catch (e: HttpException) {
             Resource.Error(e.message ?: "An error occurred")
         }
-    }
 
     override suspend fun clearSearch(): Flow<Resource<Boolean>> {
         return flow {
