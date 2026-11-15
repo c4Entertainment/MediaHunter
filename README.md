@@ -34,6 +34,9 @@ Media Hunter is on its way to F-Droid; the link works once it's accepted. APKs a
 - **Books:** trending today on Open Library.
 - **Games:** popular this year on RAWG.
 - Offline cache for movie and TV listings.
+- **Releases:** a week-by-week calendar of US digital, disc and cinema releases, most popular first, with each film's dates on its details page.
+- **Status at a glance:** cards show where each title stands: "In cinemas", "Digital 17 Nov", "On disc", "New ep 18 Nov", "Ended".
+- **One search screen** for every section, with recent searches.
 
 ### Find torrents
 - A **Find torrents** button on every movie and show.
