@@ -63,4 +63,4 @@ Requirements: JDK 17 or newer. The project uses compileSdk 37 and minSdk 25.
 
 ## License
 
-MIT. TorrentSearch is licensed separately; see `external/TorrentSearch/LICENSE`.
+Media Hunter is free software under the GNU General Public License v3.0 or later (SPDX: `GPL-3.0-or-later`); see `LICENSE`. TorrentSearch, which it includes, is MIT-licensed; see `external/TorrentSearch/LICENSE`.
