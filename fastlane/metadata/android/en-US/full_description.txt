@@ -1,0 +1,21 @@
+<p>Media Hunter is a browser for movies, TV shows, anime, music, books and games. Pick something you like, read about it, and hand it on to the app that can get it for you.</p>
+<p><b>What you can browse</b></p>
+<ul>
+<li>Movies and TV shows from TMDB: trending and popular, with genre and year filters</li>
+<li>Anime trending on AniList</li>
+<li>Albums, songs and artists from the Deezer charts, by region and genre</li>
+<li>Books trending on Open Library</li>
+<li>Games from RAWG</li>
+</ul>
+<p><b>Search and details</b></p>
+<ul>
+<li>One search screen for all of the above, with recent searches</li>
+<li>Details pages with trailers, cast, release dates, and seasons and episodes for TV</li>
+</ul>
+<p><b>Getting things</b></p>
+<ul>
+<li>Torrent searches are handed to the built-in TorrentSearch</li>
+<li>Music can be sent to downloader apps such as YTDLnis, or to a Telegram bot you choose</li>
+</ul>
+<p>Media Hunter does not host or download any content itself. It relies on the online services named above, and trailers play from YouTube. TMDB and RAWG need API keys: the app includes one for each, and you can enter your own in Settings.</p>
+<p>You can change the theme and the order of Home's sections, and lock the app behind your fingerprint or screen lock.</p>
